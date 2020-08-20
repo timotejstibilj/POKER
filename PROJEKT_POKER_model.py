@@ -52,16 +52,17 @@ class igralec():
         self.razlika_za_klicat = 0
         self.fold = False
         self.na_potezi = False
-        self.all_in = False
         #tle se mu šteje čas, če je True
-        self.položaj = "položaj"
         self.čas = "čas"
+        self.all_in = False
+        self.položaj = "položaj"
         self.zmaga = False
     #tle je kr neki napisano, moraš popravit
     #položaj je če je big blind, small blind
     
     def __repr__(self):
         return "Igralec {} s kartama {} in {} žetoni.".format(self.ime, self.karte, self.žetoni)
+
 ##############################################################
     def check(self):
         pass
@@ -103,24 +104,6 @@ class igralec():
                     max = stevila.count(i)
         return max
 
-    def velikost_pomembne_karte(self, peterka):
-        velikost_pomembne_karte = 0
-        stevila = self.karte_na_pol_od_peterke(peterka)[1]
-        for i in range(1, 14):
-            if stevila.count(i) == self.max_stevilo_pojavitev_v_peterki(peterka):
-                if i > velikost_pomembne_karte:
-                    velikost_pomembne_karte = i
-        return velikost_pomembne_karte
-    
-    def velikosti_preostalih_kart(self, peterka):
-        velikosti_preostalih_kart = []
-        stevila = self.karte_na_pol_od_peterke(peterka)[1]
-        for stevilo in stevila:
-            if stevilo != self.velikost_pomembne_karte(peterka):
-                velikosti_preostalih_kart.append(stevilo)
-        velikosti_preostalih_kart.sort()
-        return velikosti_preostalih_kart
-
     def barvna_lestvica(self, peterka):
         return self.barva(peterka) and self.lestvica(peterka)
 
@@ -128,7 +111,7 @@ class igralec():
         return self.max_stevilo_pojavitev_v_peterki(peterka) == 4
 
     def full_house(self, peterka):
-        return self.tris(peterka) and len(set(self.velikosti_preostalih_kart)) == 1
+        return self.tris(peterka) and len(set(self.velikosti_preostalih_kart(peterka))) == 1
 
     def barva(self, peterka):
         return len(set(self.karte_na_pol_od_peterke(peterka)[0])) == 1
@@ -153,39 +136,67 @@ class igralec():
     def par(self, peterka):
         return self.max_stevilo_pojavitev_v_peterki(peterka) == 2
 
-    def kombinacija(self, kira_miza):
-        for kombinacija in self.seznam_kombinacij_kart(kira_miza):
-            najmočnejši_hand = 0
-            kira_kombinacija = 0
-            if self.barvna_lestvica(kombinacija):
-                najmočnejši_hand = 8
-                kira_kombinacija = kombinacija
-            elif self.poker(kombinacija):
-                najmočnejši_hand = 7
-                kira_kombinacija = kombinacija
-            elif self.full_house(kombinacija):
-                najmočnejši_hand = 6
-                kira_kombinacija = kombinacija
-            elif self.barva(kombinacija):
-                najmočnejši_hand = 5
-                kira_kombinacija = kombinacija
-            elif self.lestvica(kombinacija):
-                najmočnejši_hand = 4
-                kira_kombinacija = kombinacija
-            elif self.tris(kombinacija):
-                najmočnejši_hand = 3
-                kira_kombinacija = kombinacija
-            elif self.dva_para(kombinacija):
-                najmočnejši_hand = 2
-                kira_kombinacija = kombinacija
-            elif self.par(kombinacija):
-                najmočnejši_hand = 1
-                kira_kombinacija = kombinacija
-            else:
-                najmočnejši_hand = 0
-                kira_kombinacija = kombinacija
-        self.kombinacija = [najmočnejši_hand, self.max_stevilo_pojavitev_v_peterki(kira_kombinacija), self.velikosti_preostalih_kart(kira_kombinacija)]
-    #katero pokaže če imaš npr dve različno močni lestvici
+    def kombinacija_od_peterke(self, peterka):
+        if self.barvna_lestvica(peterka):
+            moč_hand_a = 8
+        elif self.poker(peterka):
+            moč_hand_a = 7
+        elif self.full_house(peterka):
+            moč_hand_a = 6
+        elif self.barva(peterka):
+            moč_hand_a = 5
+        elif self.lestvica(peterka):
+            moč_hand_a = 4
+        elif self.tris(peterka):
+            moč_hand_a = 3
+        elif self.dva_para(peterka):
+            moč_hand_a = 2
+        elif self.par(peterka):
+            moč_hand_a = 1
+        else:
+            moč_hand_a = 0
+        return moč_hand_a
+
+    def velikost_pomembne_karte(self, peterka):
+        velikost_pomembne_karte = 0
+        stevila = self.karte_na_pol_od_peterke(peterka)[1]
+        for i in range(1, 14):
+            if stevila.count(i) == self.max_stevilo_pojavitev_v_peterki(peterka):
+                if i > velikost_pomembne_karte:
+                    velikost_pomembne_karte = i
+        return velikost_pomembne_karte
+    
+    def velikosti_preostalih_kart(self, peterka):
+        velikosti_preostalih_kart = []
+        stevila = self.karte_na_pol_od_peterke(peterka)[1]
+        for stevilo in stevila:
+            if stevilo != self.velikost_pomembne_karte(peterka):
+                velikosti_preostalih_kart.append(stevilo)
+        velikosti_preostalih_kart.sort(reverse=True)
+        return velikosti_preostalih_kart
+    
+    def lastnosti_kombinacije_igralca(self, kira_miza):
+        moč_kombinacije = 0
+        velikost_pomembne_karte = 0
+        velikosti_preostalih_kart = []
+        najmočnejše_kombinacije = []
+        najmočnejša_kombinacija = []
+        for combination in self.seznam_kombinacij_kart(kira_miza):
+            if self.kombinacija_od_peterke(combination) >= moč_kombinacije:
+                moč_kombinacije = self.kombinacija_od_peterke(combination)
+        for combination in self.seznam_kombinacij_kart(kira_miza):
+            if self.kombinacija_od_peterke(combination) == moč_kombinacije:
+                najmočnejše_kombinacije.append(combination)
+        for komb in najmočnejše_kombinacije:
+            if self.velikost_pomembne_karte(komb) >= velikost_pomembne_karte:
+                najmočnejša_kombinacija = komb
+        velikost_pomembne_karte = self.velikost_pomembne_karte(najmočnejša_kombinacija)
+        velikosti_preostalih_kart = (self.velikosti_preostalih_kart(najmočnejša_kombinacija))
+        kombinacija = [moč_kombinacije, velikost_pomembne_karte, velikosti_preostalih_kart]
+        return kombinacija
+
+    def pripni_kombinacijo(self, kira_miza):
+        self.kombinacija.extend(self.lastnosti_kombinacije_igralca(kira_miza))        
 ####################################################################################################
 
 class kvazi_AI(igralec):
@@ -219,11 +230,17 @@ class nespametni_goljuf(igralec):
 
 class igra():
 
+    def __init__(self):
+        self.dealer = igralec()
+        self.small_blind = igralec()
+        self.big_blind = igralec()
+        self.first_actor = igralec()
+
     def kdo_je_živ(self, ime_resničnega_igralca):
-        igralci = [ime_resničnega_igralca, "nespametni_goljuf", "ravnodušnež", "agresivnež", "blefer"]
+        igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
         igralci_v_igri = []
         for igralec in igralci:
-            if igralec.žetoni > 0:
+            if igralec.žetoni > 0 and not igralec.all_in:
                 igralci_v_igri.append(igralec)
         return igralci_v_igri
         #igralci, ki imajo še kaj žetonov
@@ -232,7 +249,10 @@ class igra():
         [igralec for igralec in self.kdo_je_živ(ime_resničnega_igralca) if not igralec.fold]
         #igralci, ki še niso foldali
 
-    def spremeni_položaj_igralcev(self):
+    def spremeni_položaj_igralcev(self, ime_resničnega_igralca):
+        igralci_v_igri = self.kdo_je_živ(ime_resničnega_igralca)
+        mesto = 0
+        self.dealer.položaj.append("dealer")
         pass
         #spremeni kdo je small, big blind, dealer, first actor
 
@@ -241,10 +261,10 @@ class igra():
 
     def stavi_small_in_big_blind(self, kira_miza, ime_resničnega_igralca):
         for igralec in self.kdo_je_živ(ime_resničnega_igralca):
-            if igralec.položaj == "small blind":
+            if "small blind" in igralec.položaj:
                 igralec.žetoni -= kira_miza.small_blind
                 kira_miza.pot += kira_miza.small_blind
-            elif igralec.položaj == "big blind":
+            elif "big blind" in igralec.položaj:
                 igralec.žetoni -= kira_miza.big_blind
                 kira_miza.pot += kira_miza.big_blind
 
@@ -256,6 +276,23 @@ class igra():
 #ime zavaja, ker ni nujno le en krog, saj se lahko igralci neprestalno višajo - raise
 #trenutno nimam boljšega imena  
 
+    def kdo_je_zmagal_hand(self, ime_resničnega_igralca):
+        igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
+        zmagovalci = []
+        najboljši_hand = [0,0,0,0,0]
+        for igralec in igralci:
+            if igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
+                if igralec.kombinacija > najboljši_hand:
+                    najboljši_hand = igralec.kombinacija
+        for igralec in igralci:
+            if igralec.kombinacija == najboljši_hand:
+                zmagovalci.append(igralec)
+        return zmagovalci
+
+                    
+        #lahko ni samo en, če pride do situacije, da ima več igralcev kombinacijo 5 istih kart
+                    
+        
 
     def nova_igra():
         miza = miza()
@@ -286,7 +323,7 @@ class igra():
             krog_stav()
 
 
-        kdo_je_zmagal()
+        kdo_je_zmagal_hand()
         #ovrednosti kombinacije, pove kdo ima najboljšo
         razdeli_pot()
         spremeni_položaj_igralcev()
@@ -301,36 +338,35 @@ class igra():
 #TEST:
 dek = deck()
 miza = miza()
+igra = igra()
 dek.premešaj_karte()
 janez = igralec("janez")
-lojze = igralec("lojze")
+nespametni_goljuf = nespametni_goljuf("nespametni_goljuf")
+blefer = blefer("blefer")
+agresivnež = agresivnež("agresivnež")
+ravnodušnež = ravnodušnež("ravnodušnež")
 print("============")
-dek.deli_karto(janez, 2)   
+igrači = [janez, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
+for i in igrači:
+    dek.deli_karto(i, 2)
+    print(i)
+
 #moraš dodat dek. ker je to metoda v classu deck, dek je objekt iz razreda deck
-dek.deli_karto(lojze, 2)
 dek.deli_karto(miza, 3)
 dek.deli_karto(miza, 1)
 dek.deli_karto(miza, 1)
 
-print("Prva kombinacija od Janeza je:")
-print(janez.seznam_kombinacij_kart(miza)[0])
+
 
 print("============")
-lol = janez.seznam_kombinacij_kart(miza)[0]
-print(janez.karte_na_pol_od_peterke(lol)[1])
-print("max stevilo pojavitev:")
-print(janez.max_stevilo_pojavitev_v_peterki(lol))
-print("najvišja je:")
-print(janez.velikost_pomembne_karte(lol))
-print("preostale so:")
-print(janez.velikosti_preostalih_kart(lol))
-
-for kombinacija in janez.seznam_kombinacij_kart(miza):
-    print(janez.dva_para(kombinacija))
+for i in igrači:
+    i.pripni_kombinacijo(miza)
+for i in igrači:
+    print(i.ime)
+    print(i.kombinacija)
 
 
 
-
-
-
-#počistil kodo, dodal opise igralcev, dodal AI, uredil kombinacije
+#pri seznamih, slovarjih lahko narediš izpeljane ponekod in prišparaš vrstico ali dve
+#pri nekaterih stvareh je treba upoštevat, da je AS tako 1 kot 14:
+#lestvica, velikost_pomembne_karte, kombinacije...
