@@ -16,6 +16,7 @@ class karta():
         return "({},{})".format(znakci.get(self.znak), slovar_stevil.get(self.stevilo))
 
 class deck(list):
+
     def __init__(self):
         super().__init__()
         for stevilo in range(2, 15):
@@ -40,7 +41,7 @@ class miza():
         return "Karte na mizi so {}".format(self.karte)
 
 class igralec():
-    def __init__(self, ime=None):
+    def __init__(self, ime="neimenovani igralec"):
         self.ime = ime
         self.karte = []
         self.kombinacija = []
@@ -53,7 +54,7 @@ class igralec():
         #tle se mu šteje čas, če je True
         self.čas = "čas"
         self.all_in = False
-        self.položaj = "položaj"
+        self.položaj = []
         self.zmaga = False
     #položaj je če je big blind, small blind
     
@@ -72,7 +73,7 @@ class igralec():
         self.žetoni -= koliko
         kira_miza.pot += koliko
     
-    def poberi_celoten_pot(self, kira_miza):
+    def poberi_pot(self, kira_miza):
         self.žetoni += kira_miza.pot
         #if self.zmaga
 
@@ -90,6 +91,7 @@ class igralec():
         for card in peterka:
             znaki.append(card.znak)
             stevila.append(card.stevilo)
+        stevila.sort(reverse=True)
         vrni.append(znaki)
         vrni.append(stevila)
         return vrni
@@ -177,29 +179,42 @@ class igralec():
         for stevilo in stevila:
             if stevilo != self.velikost_pomembne_karte(peterka):
                 velikosti_preostalih_kart.append(stevilo)
-        velikosti_preostalih_kart.sort(reverse=True)
         return velikosti_preostalih_kart
     
     def lastnosti_kombinacije_igralca(self, kira_miza):
         moč_kombinacije = 0
         velikost_pomembne_karte = 0
         velikosti_preostalih_kart = []
-        najmočnejše_kombinacije = []
-        najmočnejša_kombinacija = []
+        najmočnejše_kombinacije_brez_najvišje_karte = []
+        najmočnejše_kombinacije_z_najvišjo_karto = []
+        absolutno_najmočnejša_kombinacija = None
+        #kakšna vrsta kombinacije je najvišja: npr.par
         for combination in self.seznam_kombinacij_kart(kira_miza):
             if self.kombinacija_od_peterke(combination) >= moč_kombinacije:
                 moč_kombinacije = self.kombinacija_od_peterke(combination)
+         #vse take kombinacije, npr.vsi pari
         for combination in self.seznam_kombinacij_kart(kira_miza):
             if self.kombinacija_od_peterke(combination) == moč_kombinacije:
-                najmočnejše_kombinacije.append(combination)
-        for komb in najmočnejše_kombinacije:
+                najmočnejše_kombinacije_brez_najvišje_karte.append(combination)
+         #velikost pomembne karte, v paru je to velikost para
+        for komb in najmočnejše_kombinacije_brez_najvišje_karte:
             if self.velikost_pomembne_karte(komb) >= velikost_pomembne_karte:
-                najmočnejša_kombinacija = komb
-        velikost_pomembne_karte = self.velikost_pomembne_karte(najmočnejša_kombinacija)
-        velikosti_preostalih_kart = (self.velikosti_preostalih_kart(najmočnejša_kombinacija))
+                velikost_pomembne_karte = self.velikost_pomembne_karte(komb)
+         #take najvišje kombinacije, ki imajo najvišjo pomembno karto, v paru npr same kombinacije kjer je par ASOV
+        for komb in najmočnejše_kombinacije_brez_najvišje_karte:
+            if self.velikost_pomembne_karte(komb) == velikost_pomembne_karte:
+                najmočnejše_kombinacije_z_najvišjo_karto.append(komb)
+        #preveri celotno peterko, npr (AS, AS, KRALJ, DAMA, FANT)
+        absolutno_najmočnejša_kombinacija = najmočnejše_kombinacije_z_najvišjo_karto[0]
+        for kombinacija in najmočnejše_kombinacije_z_najvišjo_karto:
+            if self.velikosti_preostalih_kart(kombinacija) > self.velikosti_preostalih_kart(absolutno_najmočnejša_kombinacija):
+                absolutno_najmočnejša_kombinacija = kombinacija          
+ 
+        velikost_pomembne_karte = self.velikost_pomembne_karte(absolutno_najmočnejša_kombinacija)
+        velikosti_preostalih_kart = self.velikosti_preostalih_kart(absolutno_najmočnejša_kombinacija)
         kombinacija = [moč_kombinacije, velikost_pomembne_karte, velikosti_preostalih_kart]
-        return kombinacija     
-        
+        return kombinacija
+
 ####################################################################################################
 
 class kvazi_AI(igralec):
@@ -239,6 +254,7 @@ class runda():
         self.big_blind = igralec()
         self.first_actor = igralec()
         self.stave_so_poravnane = False
+        #self.deck = deck()
 
     def kdo_je_živ(self, ime_resničnega_igralca):
         igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
@@ -255,17 +271,35 @@ class runda():
         #igralci, ki še niso foldali
 
     def spremeni_položaj_igralcev(self, ime_resničnega_igralca):
-        igralci_v_igri = self.kdo_je_živ(ime_resničnega_igralca)
-        mesto = 0
-        self.dealer.položaj.append("dealer")
-        pass
+        igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
+        igralci_z_novim_položajem = {}
+        položaji = ["dealer", "small blind", "big blind", "first actor"]
+        for i in range(5):
+            for položaj in položaji:
+                if položaj in igralci[i].položaj:
+                    for j in range(1, 4):
+                        if igralci[(i + j) % 5] in runda.kdo_je_živ(ime_resničnega_igralca):
+                            if igralci[(i + j) % 5] in igralci_z_novim_položajem:
+                                igralci_z_novim_položajem[igralci[(i + j) % 5]].append(položaj)
+                            else:
+                                igralci_z_novim_položajem[igralci[(i + j) % 5]] = položaj
+                            break
+        for igralec in igralci:
+            igralec.položaj.clear()
+        for igralec in igralci_z_novim_položajem.keys():
+            igralec.položaj.append(igralci_z_novim_položajem[igralec])
+            
         #spremeni kdo je small, big blind, dealer, first actor
 
     def razdeli_karte(self, ime_resničnega_igralca):
         igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
+        small_blind = False
         for igralec in igralci:
             if igralec in self.kdo_je_živ(ime_resničnega_igralca):
-                deck.deli_karto(igralec, 2)
+                if "small blind" in igralec.položaj:
+                    small_blind = True
+                if small_blind:
+                    deck.deli_karto(igralec, 2)
 
     def stavi_small_in_big_blind(self, kira_miza, ime_resničnega_igralca):
         for igralec in self.kdo_je_živ(ime_resničnega_igralca):
@@ -311,21 +345,41 @@ class runda():
         for igralec in igralci:
             if igralec.kombinacija == najboljši_hand:
                 zmagovalci.append(igralec)
-        return zmagovalci
-
-                    
+        return zmagovalci    
         #lahko ni samo en, če pride do situacije, da ima več igralcev kombinacijo 5 istih kart        
+
+    def počisti_rundo(self, ime_resničnega_igralca):
+        igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
+        for igralec in igralci:
+            igralec.karte.clear()
+            igralec.kombinacija.clear()
+            igralec.žetoni_v_igri = 0
+            igralec.razlika_za_klicat = 0
+            igralec.fold = False
+            igralec.na_potezi = False
+            igralec.čas = "čas"
+            igralec.all_in = False
+            igralec.položaj.clear()
+            igralec.zmaga = False
+        miza.karte.clear()
+        miza.pot = 0
+        #self.deck = deck()
 
 class igra():
 
     def ustvari_igro(self, ime_resničnega_igralca):
         miza = miza()
         deck = deck()
+        runda = runda()
         #ustvari 4 igralce
         nespametni_goljuf = nespametni_goljuf("nespametni_goljuf")
         blefer = blefer("blefer")
         agresivnež = agresivnež("agresivnež")
         ravnodušnež = ravnodušnež("ravnodušnež")
+        #vzpostavi začetni položaj igralcev
+        ime_resničnega_igralca.položaj.append("dealer")
+        nespametni_goljuf.položaj.append("small blind")
+        ravnodušnež.položaj.append("big blind")
         while ime_resničnega_igralca in self.kdo_je_živ():
             #tu mogoče ne bo self.kdo_je_živ ampak runda.kdo_je_živ, odvisno v kirem razredu definiram to funkcijo
             self.igraj_runde()
@@ -337,6 +391,9 @@ class igra():
         deck.premešaj_karte()
         #preflop
         self.spremeni_položaj_igralcev()
+
+        runda.počisti_rundo()
+
         self.razdeli_karte()
         izračunaj_verjetnost_zmage()
         #nekaterim se pokaže
@@ -378,24 +435,24 @@ ravnodušnež = ravnodušnež("ravnodušnež")
 
 print("============")
 igrači = [janez, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
-
+janez.položaj.append("small blind")
+nespametni_goljuf.položaj.append("big blind")
+blefer.položaj.append("dealer")
 runda.razdeli_karte(janez)
 
-##moraš dodat dek. ker je to metoda v classu deck, dek je objekt iz razreda deck
+
+#moraš dodat dek. ker je to metoda v classu deck, dek je objekt iz razreda deck
 deck.deli_karto(miza, 3)
 deck.deli_karto(miza, 1)
 deck.deli_karto(miza, 1)
 print(miza)
-print("============")
-
-
-
+#print("============")
+#
 runda.pripni_kombinacije(miza, janez)
-for i in igrači:
-    print(i.kombinacija)
-
-print(runda.kdo_je_zmagal_rundo(janez))
+print(janez.karte)
+print(janez.lastnosti_kombinacije_igralca(miza))
 #pri seznamih, slovarjih lahko narediš izpeljane ponekod in prišparaš vrstico ali dve
 
 
-#Dodane nove funkcije za potek ene runde. Rešil problem dvojne vloge asa: 1,14. Popravljen potek igre.
+#na začetku daš resničnega igralca na pozicijo dealerja
+
