@@ -1,10 +1,8 @@
 import random
-from itertools import combinations 
-from datetime import time
+from itertools import combinations
 import holdem_calc
-#rabil bom odštevalnik za osebe
 
-class karta():
+class Karta():
     def __init__(self, znak, stevilo):
         self.znak = znak
         self.stevilo = stevilo
@@ -16,13 +14,13 @@ class karta():
         znakci = {0: "'križ'", 1: "'pik'", 2: "'srce'", 3: "'kara'"}
         return "({},{})".format(znakci.get(self.znak), slovar_stevil.get(self.stevilo))
 
-class deck(list):
+class Deck(list):
 
     def __init__(self):
         super().__init__()
         for stevilo in range(2, 15):
             for znak in range(4):
-                self.append(karta(znak, stevilo))
+                self.append(Karta(znak, stevilo))
     
     def premešaj_karte(self):
         random.shuffle(self)
@@ -31,7 +29,7 @@ class deck(list):
         for i in range(koliko_kart):
             komu.karte.append(self.pop(0))
     
-class miza():
+class Miza():
     def __init__(self):
         self.karte = []
         self.pot = 0
@@ -41,7 +39,7 @@ class miza():
     def __repr__(self):
         return "Karte na mizi so {}".format(self.karte)
 
-class igralec():
+class Igralec():
     def __init__(self, ime="neimenovani igralec"):
         self.ime = ime
         self.karte = []
@@ -51,8 +49,6 @@ class igralec():
         self.razlika_za_klicat = 0
         self.fold = False
         self.na_potezi = False
-        #tle se mu šteje čas, če je True
-        self.čas = "čas"
         self.all_in = False
         self.položaj = []
         self.verjetnost_zmage = 0
@@ -212,70 +208,163 @@ class igralec():
         velikosti_preostalih_kart = self.velikosti_preostalih_kart(absolutno_najmočnejša_kombinacija)
         kombinacija = [moč_kombinacije, velikost_pomembne_karte, velikosti_preostalih_kart]
         return kombinacija
-
-    def kako_bo_odigral(self):
-        #random.choices(population, weights=None, *, cum_weights=None, k=1)
-        #s tem lahko na random izbiraš tako da daš eni izbira večjo verjetnost izbire
-        pass
+        
 
 ####################################################################################################
 
-class kvazi_AI(igralec):
-    "kvazi_AI pokaže verjetnosti zmage posameznih igralcev."
-    def __init__(self, ime):
-        super().__init__(ime)
-        
-    def zračunaj_verjetnost_zmage_igralca(self):
-        holdem_calc.calculate(None, False, 20000, None, ["Ks", "As", "8c", "8d"], False)
-        #karte na mizi, točno računanje-true\simulacija-false, število simulacij, datoteka, karte, false
-        #prvo vrže tie, pol zmago prvega, pol zmago drugega
-        #treba je spremenit imena kart, da jih bo lahko funkcija sprejela
-
-class agresivnež(igralec):
+#na koncu vsake runde moraš ponastavit te atribute, kako bodo igrali
+class Agresivnež(Igralec):
     "Kot ime pove, agresivnež rad poseže globoko v žep in visoko stavi tudi v tveganih situacijah."
     def __init__(self, ime):
         super().__init__(ime)
-        self.bo_stavil = False
-        self.bo_checkal = False
-        self.bo_foldal = False
+        self.bo_raisal = False
+        self.bo_checkal = True
+        self.bo_callal = False
+        self.bo_foldal = True
+    
+    def agresivnež_igra(self, ime_resničnega_igralca):
+        verjetnost_zmage = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca).get(agresivnež)
+        #to je približna verjetnost, če bi igral samo z enim nasprotnikom
+        if len(runda.kdo_je_v_igri(ime_resničnega_igralca)) >= 3:
+            #če je manjša verjetnost je raise in call itak false in check, fold pa True
+            if verjetnost_zmage > 0.40 and verjetnost_zmage <= 0.75:
+                self.bo_raisal = bool(random.choices([True, False], [1, 4], None, k=1))
+                self.bo_callal = bool(random.choices([True, False], [4, 3], None, k=1))
+            elif verjetnost_zmage > 0.75:
+                self.bo_raisal = bool(random.choices([True, False], [8, 1], None, k=1))
+                self.bo_raisal = True
+        elif len(runda.kdo_je_v_igri(ime_resničnega_igralca)) < 3:
+            if verjetnost_zmage <= 0.40 and verjetnost_zmage > 0.25:
+                if self.razlika_za_klicat < (self.žetoni / 3):
+                    self.bo_callal = bool(random.choices([True, False], [1, 6], None, k=1))
+            elif verjetnost_zmage > 0.40 and verjetnost_zmage <= 0.75:
+                self.bo_raisal = bool(random.choices([True, False], [3, 5], None, k=1))
+                self.bo_callal = bool(random.choices([True, False], [3, 2], None, k=1))
+            elif verjetnost_zmage > 0.75:
+                self.bo_raisal = bool(random.choices([True, False], [8, 1], None, k=1))
+                self.bo_callal = True
 
-class ravnodušnež(igralec):
+class Ravnodušnež(Igralec):
     "Pač niso vsi za poker. Ravnodušneža kartanje ne zanima, zato je vsaka njegova poteza popolnoma naključna."
     def __init__(self, ime):
         super().__init__(ime)
-        self.bo_stavil = False
-        self.bo_checkal = False
-        self.bo_foldal = False
+        self.bo_raisal = False
+        self.bo_checkal = True
+        self.bo_callal = False
+        self.bo_foldal = True
+    
+    def ravnodušnež_igra(self):
+        self.bo_raisal = bool(random.choice([True, False]))
+        self.bo_callal = bool(random.choice([True, False]))
 
-class blefer(igralec):
+class Blefer(Igralec):
     "Nekateri radi poskušajo pretentati soigralce in pogosto stavijo tudi v primerih, ko jim karte niso naklonjene. Blefer je prav tak."
     def __init__(self, ime):
         super().__init__(ime)
-        self.bo_stavil = False
-        self.bo_checkal = False
-        self.bo_foldal = False
+        self.bo_raisal = False
+        self.bo_checkal = True
+        self.bo_callal = False
+        self.bo_foldal = True
+    
+    def blefer_igra(self, ime_resničnega_igralca):
+        verjetnost_zmage = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca).get(blefer)
+        #to je približna verjetnost, če bi igral samo z enim nasprotnikom
+        if len(runda.kdo_je_v_igri(ime_resničnega_igralca)) >= 3:
+            #če je manjša verjetnost je raise in call itak false in check, fold pa True
+            if verjetnost_zmage > 0.40 and verjetnost_zmage <= 0.75:
+                self.bo_raisal = bool(random.choices([True, False], [1, 4], None, k=1))
+                self.bo_callal = bool(random.choices([True, False], [4, 3], None, k=1))
+            elif verjetnost_zmage > 0.75:
+                self.bo_raisal = bool(random.choices([True, False], [8, 1], None, k=1))
+                self.bo_raisal = True
+        elif len(runda.kdo_je_v_igri(ime_resničnega_igralca)) < 3:
+            if verjetnost_zmage <= 0.40 and verjetnost_zmage > 0.25:
+                if self.razlika_za_klicat < (self.žetoni / 3):
+                    self.bo_raisal = bool(random.choices([True, False], [5, 1], None, k=1))
+            elif verjetnost_zmage > 0.40 and verjetnost_zmage <= 0.75:
+                self.bo_raisal = bool(random.choices([True, False], [10, 1], None, k=1))
+                self.bo_callal = True
+            elif verjetnost_zmage > 0.75:
+                self.bo_raisal = True
+                self.bo_callal = True
 
-class nespametni_goljuf(igralec):
+class Nespametni_goljuf(Igralec):
     """Nespametni goljuf se požvižga na moralo, zato si pogosto ogleduje nasprotnikove karte. \n
-    Včasih se mu zgodi, da napačno oceni moč nasprotnikovih kart, saj je prespal učne ure o verjetnosti. """
+    Včasih se mu zgodi, da kljub temu odloži najboljše karte. """
     def __init__(self, ime):
         super().__init__(ime)
-        self.bo_stavil = False
-        self.bo_checkal = False
-        self.bo_foldal = False
+        self.bo_raisal = False
+        self.bo_checkal = True
+        self.bo_callal = False
+        self.bo_foldal = True
+    
+    def nespametni_goljuf_igra(self, ime_resničnega_igralca):
+        verjetnost_zmag_igralcev = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca)
+        #to je približna verjetnost, če bi igral samo z enim nasprotnikom
+        ima_najboljše_karte = False
+        if verjetnost_zmag_igralcev.get(nespametni_goljuf) == max(verjetnost_zmag_igralcev.values()):
+            ima_najboljše_karte = True
+        if ima_najboljše_karte:
+            self.bo_raisal = bool(random.choices([True, False], [7, 1], None, k=1))
+            self.bo_callal = True
+        else:
+            if verjetnost_zmag_igralcev.get(nespametni_goljuf) < 30:
+                self.bo_raisal = False
+                self.bo_callal = bool(random.choices([True, False], [1, 7], None, k=1))
+            elif verjetnost_zmag_igralcev.get(nespametni_goljuf) < 50:
+                self.bo_raisal = bool(random.choices([True, False], [4, 3], None, k=1))
+                self.bo_callal = bool(random.choices([True, False], [5, 2], None, k=1))
+            else:
+                self.bo_raisal = bool(random.choices([True, False], [5, 1], None, k=1))  
+                self.bo_callal = True
 
 ######################################################################################################################
 ######################################################################################################################
 
-class runda():
+class Runda():
 
     def __init__(self):
-        self.dealer = igralec()
-        self.small_blind = igralec()
-        self.big_blind = igralec()
-        self.first_actor = igralec()
+        self.dealer = Igralec()
+        self.small_blind = Igralec()
+        self.big_blind = Igralec()
+        self.first_actor = Igralec()
         self.stave_so_poravnane = False
-        #self.deck = deck()
+        #self.deck = Deck()
+
+######################################################################################################################
+
+    def spremeni_zapis_kart(self):
+        dek = Deck()
+        slovar_kart = {}
+        slovar_znakcev = {0: "c", 1: "s", 2: "h", 3: "d"}
+        slovar_stevilk = {11: "J", 12: "Q", 13: "K", 14: "A"}
+        #znaki so club, spade, heart, diamond
+        #stevila so jack, queen, king in ace
+        for i in range(2,11):
+            slovar_stevilk[i] = str(i)
+        for karta in dek:
+            slovar_kart[karta] = slovar_stevilk.get(karta.stevilo) + slovar_znakcev.get(karta.znak)
+        return slovar_kart       
+        #vrne zapis kart primeren za računanje verjetnosti s holdem_calc
+        
+    def zračunaj_verjetnost_zmag(self, ime_resničnega_igralca):
+        verjetnost_zmag = {}
+        igralci = runda.kdo_je_v_igri(ime_resničnega_igralca)
+        for igralec in igralci:
+            karti = igralec.karte
+            karta_1 = runda.spremeni_zapis_kart().get(karti[0])
+            karta_2 = runda.spremeni_zapis_kart().get(karti[1])
+            if len(miza.karte) == 0:
+                verjetnost_zmag[igralec] = holdem_calc.calculate(None, False, 20000, None, [karta_1, karta_2, "?", "?"], False)[1]
+            #elif len(miza.karte) == 3:#mora računat še glede na karte na mizi
+            #elif len(miza.karte) == 4:
+            #elif len(miza.karte) == 5:
+        #karte na mizi, točno računanje-true\simulacija-false, število simulacij, datoteka, karte, false
+        #prvo vrže tie, pol zmago prvega, pol zmago drugega
+        #treba je spremenit imena kart, da jih bo lahko funkcija sprejela
+        return verjetnost_zmag
+        
+#####################################################################################################################
 
     def kdo_je_živ(self, ime_resničnega_igralca):
         igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
@@ -346,7 +435,7 @@ class runda():
                 if not igralec.all_in:
                     self.stave_so_poravnane = True
 
-    def igralec_na_potezi(self):
+    def igralec_na_potezi(self, ime_resničnega_igralca):
         igralci = [ime_resničnega_igralca, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
         for igralec in igralci:
             pass
@@ -420,12 +509,11 @@ class runda():
             igralec.razlika_za_klicat = 0
             igralec.fold = False
             igralec.na_potezi = False
-            igralec.čas = "čas"
             igralec.all_in = False
             igralec.zmaga = False
         miza.karte.clear()
         miza.pot = 0
-        #self.deck = deck()
+        #self.deck = Deck()
         #položaj pustiš pri miru, ker ga ureja že funkcija spremeni_položaj_igralcev
     
     def nova_runda(self):
@@ -459,17 +547,17 @@ class runda():
 
         #tu so že zapisane, uporabljene tudi funkcije, ki jih še nisem definiral
 
-class igra():
+class Igra():
 
     def ustvari_igro(self, ime_resničnega_igralca):
-        miza = miza()
-        deck = deck()
-        runda = runda()
+        miza = Miza()
+        deck = Deck()
+        runda = Runda()
         #ustvari 4 igralce
-        nespametni_goljuf = nespametni_goljuf("nespametni_goljuf")
-        blefer = blefer("blefer")
-        agresivnež = agresivnež("agresivnež")
-        ravnodušnež = ravnodušnež("ravnodušnež")
+        nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
+        blefer = Blefer("blefer")
+        agresivnež = Agresivnež("agresivnež")
+        ravnodušnež = Ravnodušnež("ravnodušnež")
         #vzpostavi začetni položaj igralcev
         ime_resničnega_igralca.položaj.append("dealer")
         nespametni_goljuf.položaj.append("small blind")
@@ -483,16 +571,16 @@ class igra():
 
 
 #TEST:
-miza = miza()
-deck = deck()
-runda = runda()
+miza = Miza()
+deck = Deck()
+runda = Runda()
 deck.premešaj_karte()
-janez = igralec("janez")
+janez = Igralec("janez")
 
-nespametni_goljuf = nespametni_goljuf("nespametni_goljuf")
-blefer = blefer("blefer")
-agresivnež = agresivnež("agresivnež")
-ravnodušnež = ravnodušnež("ravnodušnež")
+nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
+blefer = Blefer("blefer")
+agresivnež = Agresivnež("agresivnež")
+ravnodušnež = Ravnodušnež("ravnodušnež")
 
 print("============")
 
@@ -502,7 +590,7 @@ nespametni_goljuf.položaj.append("big blind")
 blefer.položaj.append("dealer")
 runda.razdeli_karte(janez)
 
-#moraš dodat dek. ker je to metoda v classu deck, dek je objekt iz razreda deck
+#moraš dodat dek. ker je to metoda v classu Deck, dek je objekt iz razreda Deck
 deck.deli_karto(miza, 3)
 deck.deli_karto(miza, 1)
 deck.deli_karto(miza, 1)
@@ -524,8 +612,7 @@ agresivnež.stavi(150, miza)
 
 print(runda.make_side_pots(janez))
 #pri seznamih, slovarjih lahko narediš izpeljane ponekod in prišparaš vrstico ali dve
-
+#runda.zračunaj_verjetnost_zmag(janez)
 
 #na začetku daš resničnega igralca na pozicijo dealerja
 
-#v vmesniku bi lahko bil tudi hand history kot v chatu
