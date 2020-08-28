@@ -83,8 +83,8 @@ class Igralec:
 
     ##############################################################
 
-    def seznam_kombinacij_kart(self, kira_miza):
-        izbira_iz = self.karte + kira_miza.karte
+    def seznam_kombinacij_kart(self):
+        izbira_iz = self.karte + miza.karte
         return list(combinations(izbira_iz, 5))
         # v metodo moraš napisat za katero mizo se gleda
 
@@ -185,7 +185,7 @@ class Igralec:
                 velikosti_preostalih_kart.append(stevilo)
         return velikosti_preostalih_kart
 
-    def lastnosti_kombinacije_igralca(self, kira_miza):
+    def lastnosti_kombinacije_igralca(self):
         moč_kombinacije = 0
         velikost_pomembne_karte = 0
         velikosti_preostalih_kart = []
@@ -193,11 +193,11 @@ class Igralec:
         najmočnejše_kombinacije_z_najvišjo_karto = []
         absolutno_najmočnejša_kombinacija = None
         # kakšna vrsta kombinacije je najvišja: npr.par
-        for combination in self.seznam_kombinacij_kart(kira_miza):
+        for combination in self.seznam_kombinacij_kart(miza):
             if self.kombinacija_od_peterke(combination) >= moč_kombinacije:
                 moč_kombinacije = self.kombinacija_od_peterke(combination)
         # vse take kombinacije, npr.vsi pari
-        for combination in self.seznam_kombinacij_kart(kira_miza):
+        for combination in self.seznam_kombinacij_kart(miza):
             if self.kombinacija_od_peterke(combination) == moč_kombinacije:
                 najmočnejše_kombinacije_brez_najvišje_karte.append(combination)
         # velikost pomembne karte, v paru je to velikost para
@@ -238,7 +238,7 @@ class Agresivnež(Igralec):
         self.koliko_bo_raisal = 0
         self.bo_callal = False
 
-    def agresivnež_igra(self, ime_resničnega_igralca):
+    def kako_igra(self, ime_resničnega_igralca):
         verjetnost_zmage = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca).get(agresivnež)
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
         if len(runda.kdo_je_v_igri(ime_resničnega_igralca)) >= 3:
@@ -286,7 +286,7 @@ class Ravnodušnež(Igralec):
         self.koliko_bo_raisal = 0
         self.bo_callal = False
 
-    def ravnodušnež_igra(self):
+    def kako_igra(self):
         self.bo_raisal = bool(random.choice([True, False]))
         self.koliko_bo_raisal = 0
         self.bo_callal = bool(random.choice([True, False]))
@@ -305,7 +305,7 @@ class Blefer(Igralec):
         self.koliko_bo_raisal = 0
         self.bo_callal = False
 
-    def blefer_igra(self, ime_resničnega_igralca):
+    def kako_igra(self, ime_resničnega_igralca):
         verjetnost_zmage = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca).get(blefer)
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
         if len(runda.kdo_je_v_igri(ime_resničnega_igralca)) >= 3:
@@ -355,7 +355,7 @@ class Nespametni_goljuf(Igralec):
         self.bo_raisal = False
         self.bo_callal = False
 
-    def nespametni_goljuf_igra(self, ime_resničnega_igralca):
+    def kako_igra(self, ime_resničnega_igralca):
         verjetnost_zmag_igralcev = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca)
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
         ima_najboljše_karte = False
@@ -397,12 +397,8 @@ class Nespametni_goljuf(Igralec):
 
 class Runda:
     def __init__(self):
-        self.dealer = Igralec()
-        self.small_blind = Igralec()
-        self.big_blind = Igralec()
-        self.first_actor = Igralec()
         self.stave_so_poravnane = False
-        # self.deck = Deck()
+        self.deck = Deck()
 
     ######################################################################################################################
 
@@ -502,7 +498,7 @@ class Runda:
         for i in range(5):
             for položaj in položaji:
                 if položaj in igralci[i].položaj:
-                    for j in range(1, 4):
+                    for j in range(1, 5):
                         if igralci[(i + j) % 5] in runda.kdo_je_živ(ime_resničnega_igralca):
                             if igralci[(i + j) % 5] in igralci_z_novim_položajem:
                                 igralci_z_novim_položajem[igralci[(i + j) % 5]].append(položaj)
@@ -524,24 +520,25 @@ class Runda:
             agresivnež,
             blefer,
         ]
-        small_blind = False
+        začni_delit = False
         for igralec in igralci:
             if igralec in self.kdo_je_živ(ime_resničnega_igralca):
                 if "small blind" in igralec.položaj:
-                    small_blind = True
-                if small_blind:
-                    deck.deli_karto(igralec, 2)
+                    začni_delit = True
+                    self.deck.deli_karto(igralec, 2)
+                elif začni_delit:
+                    self.deck.deli_karto(igralec, 2)
 
-    def stavi_small_in_big_blind(self, kira_miza, ime_resničnega_igralca):
+    def stavi_small_in_big_blind(self, ime_resničnega_igralca):
         for igralec in self.kdo_je_živ(ime_resničnega_igralca):
             if "small blind" in igralec.položaj:
-                igralec.žetoni -= kira_miza.small_blind
-                kira_miza.pot += kira_miza.small_blind
+                igralec.žetoni -= miza.small_blind
+                miza.pot += miza.small_blind
             elif "big blind" in igralec.položaj:
-                igralec.žetoni -= kira_miza.big_blind
-                kira_miza.pot += kira_miza.big_blind
+                igralec.žetoni -= miza.big_blind
+                miza.pot += miza.big_blind
 
-    def pripni_kombinacije(self, kira_miza, ime_resničnega_igralca):
+    def pripni_kombinacije(self, ime_resničnega_igralca):
         igralci = [
             ime_resničnega_igralca,
             nespametni_goljuf,
@@ -550,9 +547,9 @@ class Runda:
             blefer,
         ]
         for igralec in igralci:
-            igralec.kombinacija.extend(igralec.lastnosti_kombinacije_igralca(kira_miza))
+            igralec.kombinacija.extend(igralec.lastnosti_kombinacije_igralca(miza))
 
-    def stave_so_poravnane(self, kira_runda, kira_miza, ime_resničnega_igralca):
+    def stave_so_poravnane(self, kira_runda, ime_resničnega_igralca):
         igralci = [
             ime_resničnega_igralca,
             nespametni_goljuf,
@@ -567,6 +564,17 @@ class Runda:
             if igralec.žetoni_v_igri != stava:
                 if not igralec.all_in:
                     self.stave_so_poravnane = True
+
+    def pokaži_kako_igralci_igrajo(self, ime_resničnega_igralca):
+        igralci = [
+            ime_resničnega_igralca,
+            nespametni_goljuf,
+            ravnodušnež,
+            agresivnež,
+            blefer,
+        ]
+        for igralec in igralci:
+            igralec.kako_igra(ime_resničnega_igralca)
 
     def krog_stav(self, ime_resničnega_igralca):
         gremo_dalje = False
@@ -583,8 +591,16 @@ class Runda:
 
     def vprašaj_igralca_za_potezo(self, kateri_igralec, ime_resničnega_igralca):
         # resnični igralec sam pove kako bo igral
+        self.pokaži_kako_igralci_igrajo(ime_resničnega_igralca)
         if kateri_igralec == ime_resničnega_igralca:
-            pass
+            if ime_resničnega_igralca.razlika_za_klicat > 0:
+                if ime_resničnega_igralca.razlika_za_klicat > ime_resničnega_igralca.žetoni:
+                    ime_resničnega_igralca.stavi(ime_resničnega_igralca.žetoni)
+                    ime_resničnega_igralca.all_in = True
+                else:
+                    ime_resničnega_igralca.stavi(ime_resničnega_igralca.razlika_za_klicat)
+            else:
+                ime_resničnega_igralca.check
         # če je računalnik pa igra tako
         if kateri_igralec.razlika_za_klicat > 0:
             if kateri_igralec.bo_raisal:
@@ -669,10 +685,24 @@ class Runda:
         igralci = self.kdo_je_v_igri(ime_resničnega_igralca)
         side_pots = self.make_side_pots(ime_resničnega_igralca)
         vse_stave = list(side_pots.keys()).sort()
+        kiri_igralci = [
+            ime_resničnega_igralca,
+            nespametni_goljuf,
+            ravnodušnež,
+            agresivnež,
+            blefer,
+        ]
         for igralec in igralci:
+            igralec.zmaga = False
+            self.kdo_je_zmagal_rundo(ime_resničnega_igralca, kiri_igralci)
             if igralec.zmaga:
-                side_pots.get(igralec.žetoni_v_igri)
-                pass
+                dodaj = 0
+                for stava in vse_stave:
+                    if stava <= side_pots.get(igralec.žetoni_v_igri):
+                        dodaj += stava
+            igralec.žetoni += dodaj
+            kiri_igralci.remove(igralec)
+
         # treba je še upoštevat, da tisti ki zmaga ne nujno pobere vsega, če je all_in in so drugi stavli še dalje
 
     def počisti_rundo(self, ime_resničnega_igralca):
@@ -692,107 +722,121 @@ class Runda:
             igralec.na_potezi = False
             igralec.all_in = False
             igralec.zmaga = False
+            igralec.verjetnost_zmage = 0
         miza.karte.clear()
         miza.pot = 0
         self.deck = Deck()
+
         # položaj pustiš pri miru, ker ga ureja že funkcija spremeni_položaj_igralcev
 
     def nova_runda(self, ime_resničnega_igralca):
         # preflop
         self.spremeni_položaj_igralcev(janez)
-        self.počisti_rundo()
-        deck.premešaj_karte()
-        deck.razdeli_karte()
-        runda.zračunaj_verjetnost_zmage(ime_resničnega_igralca)
-        # nekaterim se pokaže
-        self.stavi_small_in_big_blind()
-        self.krog_stav()
+        self.počisti_rundo(ime_resničnega_igralca)
+        self.deck.premešaj_karte()
+        self.razdeli_karte(ime_resničnega_igralca)
+        self.stavi_small_in_big_blind(ime_resničnega_igralca)
+        self.krog_stav(ime_resničnega_igralca)
         # flop
-        deck.deli_karto(kira_miza, 3)
-        runda.zračunaj_verjetnost_zmage(ime_resničnega_igralca)
-        self.krog_stav()
+        self.deck.deli_karto(miza, 3)
+        self.krog_stav(ime_resničnega_igralca)
         runda.stave_so_poravnane = False
         # na turnu je nov krog stav od začetka
         # turn, river
         for i in range(2):
-            deck.deli_karto(kira_miza, 1)
-            runda.zračunaj_verjetnost_zmage()
-            self.krog_stav()
+            self.deck.deli_karto(miza, 1)
+            self.krog_stav(ime_resničnega_igralca)
             runda.stave_so_poravnane = False
             # na koncu sicer kaže false tudi če so poravnane, ampak ni s tem nič narobe
-
-        self.kdo_je_zmagal_rundo(ime_resničnega_igralca)
-        self.razdeli_pot()
+        self.pripni_kombinacije(ime_resničnega_igralca)
+        self.kdo_je_zmagal_rundo(ime_resničnega_igralca, self.kdo_je_v_igri)
+        self.razdeli_pot(ime_resničnega_igralca)
 
 
 class Igra:
     def __init__(self):
-        konec_igre = False
+        self.konec_igre = False
 
-    def ustvari_igro(self, ime_resničnega_igralca):
-        miza = Miza()
-        deck = Deck()
-        runda = Runda()
-        # ustvari 4 igralce
+    def ustvari_igralce(self):
+        global nespametni_goljuf
+        global blefer
+        global agresivnež
+        global ravnodušnež
+        global janez
         nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
         blefer = Blefer("blefer")
         agresivnež = Agresivnež("agresivnež")
         ravnodušnež = Ravnodušnež("ravnodušnež")
+        janez = Igralec("Janez")
+
+    def ustvari_igro(self, ime_resničnega_igralca):
+        global miza
+        miza = Miza()
+        global runda
+        runda = Runda()
+        runda.deck = Deck()
+        self.ustvari_igralce()
         # vzpostavi začetni položaj igralcev
         ime_resničnega_igralca.položaj.append("dealer")
         nespametni_goljuf.položaj.append("small blind")
         ravnodušnež.položaj.append("big blind")
-        while ime_resničnega_igralca in self.kdo_je_živ():
-            self.igraj_runde()
+        while ime_resničnega_igralca in runda.kdo_je_živ(ime_resničnega_igralca):
+            self.igraj_runde(ime_resničnega_igralca)
 
     def igraj_runde(self, ime_resničnega_igralca):
-        runda.nova_runda()
+        while True:
+            runda.nova_runda(ime_resničnega_igralca)
+
+
+igra = Igra()
+igra.ustvari_igralce()
+ime_resničnega_igralca = janez
+
+igra.ustvari_igro(ime_resničnega_igralca)
 
 
 # TEST:
-miza = Miza()
-deck = Deck()
-runda = Runda()
-deck.premešaj_karte()
-janez = Igralec("janez")
-
-nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
-blefer = Blefer("blefer")
-agresivnež = Agresivnež("agresivnež")
-ravnodušnež = Ravnodušnež("ravnodušnež")
-
-print("============")
-
-igrači = [janez, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
-janez.položaj.append("small blind")
-nespametni_goljuf.položaj.append("big blind")
-blefer.položaj.append("dealer")
-runda.razdeli_karte(janez)
-
-# moraš dodat dek. ker je to metoda v classu Deck, dek je objekt iz razreda Deck
-deck.deli_karto(miza, 3)
-deck.deli_karto(miza, 1)
-deck.deli_karto(miza, 1)
-print(miza)
-print("============")
-
-runda.pripni_kombinacije(miza, janez)
-runda.kdo_je_zmagal_rundo(janez)
-for i in igrači:
-    print(i)
-    print(i.karte)
-    print(i.kombinacija)
-    print(i.zmaga)
-
-
-janez.stavi(10)
-ravnodušnež.stavi(20)
-nespametni_goljuf.stavi(100)
-agresivnež.stavi(150)
-
-print(runda.make_side_pots(janez))
+# miza = Miza()
+# runda = Runda()
+# runda.deck.premešaj_karte()
+# janez = Igralec("janez")
+# nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
+# blefer = Blefer("blefer")
+# agresivnež = Agresivnež("agresivnež")
+# ravnodušnež = Ravnodušnež("ravnodušnež")
+# print("============")
+# igrači = [janez, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
+# janez.položaj.append("small blind")
+# nespametni_goljuf.položaj.append("big blind")
+# blefer.položaj.append("dealer")
+#
+# runda.razdeli_karte(janez)
+## moraš dodat dek. ker je to metoda v classu Deck, dek je objekt iz razreda Deck
+# runda.deck.deli_karto(miza, 3)
+# runda.deck.deli_karto(miza, 1)
+# runda.deck.deli_karto(miza, 1)
+# print(miza)
+# print("============")
+# runda.pripni_kombinacije(miza, janez)
+# runda.kdo_je_zmagal_rundo(janez, runda.kdo_je_v_igri(janez))
+# runda.pokaži_razlike_za_klicat(janez)
+# for i in igrači:
+#    print(i)
+#    print(i.karte)
+#    print(i.razlika_za_klicat)
+#    print(i.kombinacija)
+#    print(i.zmaga)
+# janez.stavi(10)
+# ravnodušnež.stavi(20)
+# nespametni_goljuf.stavi(100)
+# agresivnež.stavi(150)
+# print(runda.make_side_pots(janez))
 # print(runda.zračunaj_verjetnost_zmag(janez))
-# pri seznamih, slovarjih lahko narediš izpeljane ponekod in prišparaš vrstico ali dve
-# runda.zračunaj_verjetnost_zmag(janez)
+
 
 # na začetku daš resničnega igralca na pozicijo dealerja
+# pri seznamih, slovarjih lahko narediš izpeljane ponekod in prišparaš vrstico ali dve
+
+# kako bi naredu da se igralec odloči al calla, raisa
+# koliko
+# in to cifro pol uporabu v modelu
