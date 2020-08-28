@@ -396,9 +396,10 @@ class Nespametni_goljuf(Igralec):
 
 
 class Runda:
-    def __init__(self):
+    def __init__(self, igralci):
         self.stave_so_poravnane = False
         self.deck = Deck()
+        self.igralci = igralci
 
     ######################################################################################################################
 
@@ -466,15 +467,8 @@ class Runda:
     #####################################################################################################################
 
     def kdo_je_živ(self, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
         igralci_v_igri = []
-        for igralec in igralci:
+        for igralec in self.igralci:
             if igralec.žetoni > 0:
                 if not igralec.all_in:
                     igralci_v_igri.append(igralec)
@@ -486,13 +480,7 @@ class Runda:
         # igralci, ki še niso foldali
 
     def spremeni_položaj_igralcev(self, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
+        igralci = self.igralci
         igralci_z_novim_položajem = {}
         položaji = ["dealer", "small blind", "big blind", "first actor"]
         for i in range(5):
@@ -513,15 +501,8 @@ class Runda:
         # spremeni kdo je small, big blind, dealer, first actor
 
     def razdeli_karte(self, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
         začni_delit = False
-        for igralec in igralci:
+        for igralec in self.igralci:
             if igralec in self.kdo_je_živ(ime_resničnega_igralca):
                 if "small blind" in igralec.položaj:
                     začni_delit = True
@@ -539,26 +520,12 @@ class Runda:
                 miza.pot += miza.big_blind
 
     def pripni_kombinacije(self, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
-        for igralec in igralci:
+        for igralec in self.igralci:
             igralec.kombinacija.extend(igralec.lastnosti_kombinacije_igralca(miza))
 
     def stave_so_poravnane(self, kira_runda, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
         stava = 0
-        for igralec in igralci:
+        for igralec in self.igralci:
             stava = max(stava, igralec.žetoni_v_igri)
         for igralec in kira_runda.kdo_je_v_igri(ime_resničnega_igralca):
             if igralec.žetoni_v_igri != stava:
@@ -566,27 +533,19 @@ class Runda:
                     self.stave_so_poravnane = True
 
     def pokaži_kako_igralci_igrajo(self, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
-        for igralec in igralci:
+        for igralec in self.igralci:
             igralec.kako_igra(ime_resničnega_igralca)
 
     def krog_stav(self, ime_resničnega_igralca):
         gremo_dalje = False
         while self.stave_so_poravnane == False:
-            igralci = [janez, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
-            for igralec in igralci:
+            for igralec in self.igralci:
                 if "first actor" in igralec.položaj:
-                    if igralec in runda.kdo_je_v_igri(ime_resničnega_igralca):
+                    if igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
                         self.vprašaj_igralca_za_potezo(igralec, ime_resničnega_igralca)
                         gremo_dalje = True
                 elif gremo_dalje:
-                    if igralec in runda.kdo_je_v_igri(ime_resničnega_igralca):
+                    if igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
                         self.vprašaj_igralca_za_potezo(igralec, ime_resničnega_igralca)
 
     def vprašaj_igralca_za_potezo(self, kateri_igralec, ime_resničnega_igralca):
@@ -646,13 +605,7 @@ class Runda:
         # če ni side_potov --> kiri_igralci = self.kdo_je_v_igri(ime_resničnega_igralca)
 
     def make_side_pots(self, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
+        igralci = self.igralci
         stave_igralcev = set()
         side_pots = {}
         for igralec in igralci:
@@ -706,14 +659,7 @@ class Runda:
         # treba je še upoštevat, da tisti ki zmaga ne nujno pobere vsega, če je all_in in so drugi stavli še dalje
 
     def počisti_rundo(self, ime_resničnega_igralca):
-        igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
-        for igralec in igralci:
+        for igralec in self.igralci:
             igralec.karte.clear()
             igralec.kombinacija.clear()
             igralec.žetoni_v_igri = 0
@@ -740,13 +686,13 @@ class Runda:
         # flop
         self.deck.deli_karto(miza, 3)
         self.krog_stav(ime_resničnega_igralca)
-        runda.stave_so_poravnane = False
+        self.stave_so_poravnane = False
         # na turnu je nov krog stav od začetka
         # turn, river
         for i in range(2):
             self.deck.deli_karto(miza, 1)
             self.krog_stav(ime_resničnega_igralca)
-            runda.stave_so_poravnane = False
+            self.stave_so_poravnane = False
             # na koncu sicer kaže false tudi če so poravnane, ampak ni s tem nič narobe
         self.pripni_kombinacije(ime_resničnega_igralca)
         self.kdo_je_zmagal_rundo(ime_resničnega_igralca, self.kdo_je_v_igri)
@@ -754,45 +700,38 @@ class Runda:
 
 
 class Igra:
-    def __init__(self):
+    def __init__(self, resnicni_igralec):
         self.konec_igre = False
+        self.runda = None
 
-    def ustvari_igralce(self):
-        global nespametni_goljuf
-        global blefer
-        global agresivnež
-        global ravnodušnež
-        global janez
-        nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
-        blefer = Blefer("blefer")
-        agresivnež = Agresivnež("agresivnež")
-        ravnodušnež = Ravnodušnež("ravnodušnež")
-        janez = Igralec("Janez")
+        self.miza = Miza()
 
-    def ustvari_igro(self, ime_resničnega_igralca):
-        global miza
-        miza = Miza()
-        global runda
-        runda = Runda()
-        runda.deck = Deck()
-        self.ustvari_igralce()
-        # vzpostavi začetni položaj igralcev
-        ime_resničnega_igralca.položaj.append("dealer")
-        nespametni_goljuf.položaj.append("small blind")
-        ravnodušnež.položaj.append("big blind")
-        while ime_resničnega_igralca in runda.kdo_je_živ(ime_resničnega_igralca):
-            self.igraj_runde(ime_resničnega_igralca)
+        self.resnicni_igralec = resnicni_igralec
+        self.nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
+        self.blefer = Blefer("blefer")
+        self.agresivnež = Agresivnež("agresivnež")
+        self.ravnodušnež = Ravnodušnež("ravnodušnež")
 
-    def igraj_runde(self, ime_resničnega_igralca):
-        while True:
-            runda.nova_runda(ime_resničnega_igralca)
+        self.igralci = [
+            self.resnicni_igralec,
+            self.nespametni_goljuf,
+            self.blefer,
+            self.agresivnež,
+            self.ravnodušnež,
+        ]
+
+    def nova_runda(self):
+        self.runda = Runda(self.igralci)
+        self.runda.deck = Deck()
+
+        self.resnicni_igralec.položaj.append("dealer")
+        self.nespametni_goljuf.položaj.append("small blind")
+        self.ravnodušnež.položaj.append("big blind")
 
 
-igra = Igra()
-igra.ustvari_igralce()
-ime_resničnega_igralca = janez
+igra = Igra(janez)
 
-igra.ustvari_igro(ime_resničnega_igralca)
+# igra.ustvari_igro(ime_resničnega_igralca)
 
 
 # TEST:
