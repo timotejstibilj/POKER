@@ -29,7 +29,6 @@ class Deck(list):
             for znak in range(4):
                 self.append(Karta(znak, stevilo))
 
-    def premešaj_karte(self):
         random.shuffle(self)
 
     def deli_karto(self, komu, koliko_kart):
@@ -397,11 +396,43 @@ class Nespametni_goljuf(Igralec):
 
 class Runda:
     def __init__(self, igralci):
-        self.stave_so_poravnane = False
-        self.deck = Deck()
-        self.igralci = igralci
+        if len(igralci) < 1:
+            raise ValueError("Poker je igra za dva ali več igralcev. Igraj pasijanso.")
 
-    ######################################################################################################################
+        self.stave_so_poravnane = False
+        self.igralci = igralci
+        self.zgodovina = []
+
+        if len(igralci) == 2:
+            self.igralci[0].položaj = ["dealer", "big blind"]
+            self.igralci[1].položaj = ["small blind", "first player"]
+        elif len(igralci) == 3:
+            self.igralci[0].položaj = ["dealer", "first player"]
+            self.igralci[1].položaj = ["small blind"]
+            self.igralci[2].položaj = ["big blind"]
+        elif len(igralci) >= 4:
+            self.igralci[0].položaj = ["dealer"]
+            self.igralci[1].položaj = ["small blind"]
+            self.igralci[2].položaj = ["big blind"]
+            self.igralci[3].položaj = ["first player"]
+
+        for igralec in self.igralci:
+            igralec.karte.clear()
+            igralec.kombinacija.clear()
+            igralec.žetoni_v_igri = 0
+            igralec.razlika_za_klicat = 0
+            igralec.fold = False
+            igralec.na_potezi = False
+            igralec.all_in = False
+            igralec.zmaga = False
+            igralec.verjetnost_zmage = 0
+
+        self.miza = Miza()
+        self.deck = Deck()
+
+        self.razdeli_karte()
+        self.stavi_small_in_big_blind()
+        self.zacni()
 
     def spremeni_zapis_kart(self):
         dek = Deck()
@@ -466,71 +497,50 @@ class Runda:
 
     #####################################################################################################################
 
-    def kdo_je_živ(self, ime_resničnega_igralca):
-        igralci_v_igri = []
+    def kdo_je_živ(self):
+        """Igralci, ki imajo še kaj žetonov"""
         for igralec in self.igralci:
-            if igralec.žetoni > 0:
-                if not igralec.all_in:
-                    igralci_v_igri.append(igralec)
-        return igralci_v_igri
-        # igralci, ki imajo še kaj žetonov
+            if igralec.žetoni > 0 and not igralec.all_in:
+                yield igralec
 
-    def kdo_je_v_igri(self, ime_resničnega_igralca):
-        return [igralec for igralec in self.kdo_je_živ(ime_resničnega_igralca) if not igralec.fold]
-        # igralci, ki še niso foldali
+    def kdo_je_v_igri(self):
+        """Igralci, ki še niso foldali"""
+        return [igralec for igralec in self.kdo_je_živ() if not igralec.fold]
 
-    def spremeni_položaj_igralcev(self, ime_resničnega_igralca):
-        igralci = self.igralci
-        igralci_z_novim_položajem = {}
-        položaji = ["dealer", "small blind", "big blind", "first actor"]
-        for i in range(5):
-            for položaj in položaji:
-                if položaj in igralci[i].položaj:
-                    for j in range(1, 5):
-                        if igralci[(i + j) % 5] in runda.kdo_je_živ(ime_resničnega_igralca):
-                            if igralci[(i + j) % 5] in igralci_z_novim_položajem:
-                                igralci_z_novim_položajem[igralci[(i + j) % 5]].append(položaj)
-                            else:
-                                igralci_z_novim_položajem[igralci[(i + j) % 5]] = položaj
-                            break
-        for igralec in igralci:
-            igralec.položaj.clear()
-        for igralec in igralci_z_novim_položajem.keys():
-            igralec.položaj.append(igralci_z_novim_položajem[igralec])
-
-        # spremeni kdo je small, big blind, dealer, first actor
-
-    def razdeli_karte(self, ime_resničnega_igralca):
-        začni_delit = False
-        for igralec in self.igralci:
-            if igralec in self.kdo_je_živ(ime_resničnega_igralca):
-                if "small blind" in igralec.položaj:
-                    začni_delit = True
-                    self.deck.deli_karto(igralec, 2)
-                elif začni_delit:
-                    self.deck.deli_karto(igralec, 2)
-
-    def stavi_small_in_big_blind(self, ime_resničnega_igralca):
-        for igralec in self.kdo_je_živ(ime_resničnega_igralca):
+    def razdeli_karte(self):
+        for i, igralec in enumerate(self.igralci):
             if "small blind" in igralec.položaj:
-                igralec.žetoni -= miza.small_blind
-                miza.pot += miza.small_blind
+                break
+
+        igralci_po_vrsti = self.igralci[i:] + self.igralci[:i]
+        for igralec in igralci_po_vrsti:
+            self.deck.deli_karto(igralec, 2)
+
+    def stavi_small_in_big_blind(self):
+        # TODO: Poskrbi za primer all-in
+        for igralec in self.kdo_je_živ():
+            if "small blind" in igralec.položaj:
+                igralec.žetoni -= self.miza.small_blind
+                self.miza.pot += self.miza.small_blind
             elif "big blind" in igralec.položaj:
-                igralec.žetoni -= miza.big_blind
-                miza.pot += miza.big_blind
+                igralec.žetoni -= self.miza.big_blind
+                self.miza.pot += self.miza.big_blind
 
     def pripni_kombinacije(self, ime_resničnega_igralca):
         for igralec in self.igralci:
             igralec.kombinacija.extend(igralec.lastnosti_kombinacije_igralca(miza))
 
-    def stave_so_poravnane(self, kira_runda, ime_resničnega_igralca):
+    def stave_so_poravnane(self):
         stava = 0
         for igralec in self.igralci:
             stava = max(stava, igralec.žetoni_v_igri)
-        for igralec in kira_runda.kdo_je_v_igri(ime_resničnega_igralca):
+
+        for igralec in self.kdo_je_v_igri():
             if igralec.žetoni_v_igri != stava:
                 if not igralec.all_in:
-                    self.stave_so_poravnane = True
+                    return True
+
+        return False
 
     def pokaži_kako_igralci_igrajo(self, ime_resničnega_igralca):
         for igralec in self.igralci:
@@ -548,44 +558,37 @@ class Runda:
                     if igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
                         self.vprašaj_igralca_za_potezo(igralec, ime_resničnega_igralca)
 
-    def vprašaj_igralca_za_potezo(self, kateri_igralec, ime_resničnega_igralca):
-        # resnični igralec sam pove kako bo igral
-        self.pokaži_kako_igralci_igrajo(ime_resničnega_igralca)
-        if kateri_igralec == ime_resničnega_igralca:
-            if ime_resničnega_igralca.razlika_za_klicat > 0:
-                if ime_resničnega_igralca.razlika_za_klicat > ime_resničnega_igralca.žetoni:
-                    ime_resničnega_igralca.stavi(ime_resničnega_igralca.žetoni)
-                    ime_resničnega_igralca.all_in = True
+    def vprasaj_racunalnik_za_potezo(self, igralec):
+        self.pokaži_razlike_za_klicat()
+        if igralec.razlika_za_klicat > 0:
+            if igralec.bo_raisal:
+                if igralec.koliko_bo_raisal < igralec.žetoni:
+                    igralec.stavi(igralec.koliko_bo_raisal)
+                    return "Stavi: {}".format(igralec.koliko_bo_raisal)
                 else:
-                    ime_resničnega_igralca.stavi(ime_resničnega_igralca.razlika_za_klicat)
+                    igralec.stavi(igralec.žetoni)
+                    igralec.all_in = True
+                    return "All in"
+            elif igralec.bo_callal:
+                if igralec.razlika_za_klicat >= igralec.žetoni:
+                    igralec.stavi(igralec.žetoni)
+                    igralec.all_in = True
+                    return "All in"
+                else:
+                    igralec.stavi(igralec.razlika_za_klicat)
+                    return "Stavi: {}".format(igralec.razlika_za_klicat)
             else:
-                ime_resničnega_igralca.check
-        # če je računalnik pa igra tako
-        if kateri_igralec.razlika_za_klicat > 0:
-            if kateri_igralec.bo_raisal:
-                if kateri_igralec.koliko_bo_raisal < kateri_igralec.žetoni:
-                    kateri_igralec.stavi(kateri_igralec.koliko_bo_raisal)
-                else:
-                    kateri_igralec.stavi(kateri_igralec.žetoni)
-                    kateri_igralec.all_in = True
-            elif kateri_igralec.bo_callal:
-                if kateri_igralec.razlika_za_klicat >= kateri_igralec.žetoni:
-                    kateri_igralec.stavi(kateri_igralec.žetoni)
-                    kateri_igralec.all_in = True
-                else:
-                    kateri_igralec.stavi(kateri_igralec.razlika_za_klicat)
-            else:
-                kateri_igralec.fold
+                igralec.fold
+                return "Fold"
         else:
-            kateri_igralec.check
-        # spremeni razlike za klicat, po vsaki potezi
-        self.pokaži_razlike_za_klicat(ime_resničnega_igralca)
+            igralec.check
+            return "Check"
 
-    def pokaži_razlike_za_klicat(self, ime_resničnega_igralca):
+    def pokaži_razlike_za_klicat(self):
         največja_količina_žetonov_v_igri = 0
-        for igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
+        for igralec in self.kdo_je_v_igri():
             največja_količina_žetonov_v_igri = max(največja_količina_žetonov_v_igri, igralec.žetoni_v_igri)
-        for igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
+        for igralec in self.kdo_je_v_igri():
             if največja_količina_žetonov_v_igri > igralec.žetoni_v_igri:
                 igralec.razlika_za_klicat = največja_količina_žetonov_v_igri - igralec.žetoni_v_igri
 
@@ -658,30 +661,7 @@ class Runda:
 
         # treba je še upoštevat, da tisti ki zmaga ne nujno pobere vsega, če je all_in in so drugi stavli še dalje
 
-    def počisti_rundo(self, ime_resničnega_igralca):
-        for igralec in self.igralci:
-            igralec.karte.clear()
-            igralec.kombinacija.clear()
-            igralec.žetoni_v_igri = 0
-            igralec.razlika_za_klicat = 0
-            igralec.fold = False
-            igralec.na_potezi = False
-            igralec.all_in = False
-            igralec.zmaga = False
-            igralec.verjetnost_zmage = 0
-        miza.karte.clear()
-        miza.pot = 0
-        self.deck = Deck()
-
-        # položaj pustiš pri miru, ker ga ureja že funkcija spremeni_položaj_igralcev
-
     def nova_runda(self, ime_resničnega_igralca):
-        # preflop
-        self.spremeni_položaj_igralcev(janez)
-        self.počisti_rundo(ime_resničnega_igralca)
-        self.deck.premešaj_karte()
-        self.razdeli_karte(ime_resničnega_igralca)
-        self.stavi_small_in_big_blind(ime_resničnega_igralca)
         self.krog_stav(ime_resničnega_igralca)
         # flop
         self.deck.deli_karto(miza, 3)
@@ -697,6 +677,29 @@ class Runda:
         self.pripni_kombinacije(ime_resničnega_igralca)
         self.kdo_je_zmagal_rundo(ime_resničnega_igralca, self.kdo_je_v_igri)
         self.razdeli_pot(ime_resničnega_igralca)
+
+    def zacni(self):
+        # Ce sem imel small ali big, poklici nadaljuj
+        # Sicer pa pridi do mene
+        for i, igralec in enumerate(self.igralci):
+            if type(igralec) == Igralec:
+                break
+
+    def nadaljuj(self):
+        for i, igralec in enumerate(self.igralci):
+            if type(igralec) == Igralec:
+                break
+
+        igralci_na_vrsti = self.igralci[i + 1 :] + self.igralci[:i]
+        for igralec in igralci_na_vrsti:
+            if self.stave_so_poravnane():
+                # TODO: poskrbi za nadaljevanje. Ali odpri novo karto ali poglej karte
+                pass
+            poteza = self.vprasaj_racunalnik_za_potezo(igralec)
+            self.zgodovina.append("{} {}".format(igralec, poteza))
+        # TODO: odigraj igralce self.igralci[i+1:]
+        # TODO: deli karte (najprej 3, potem 1, potem 1)
+        # TODO: odigraj igralce self.igralci[:i]
 
 
 class Igra:
@@ -721,17 +724,38 @@ class Igra:
         ]
 
     def nova_runda(self):
+        self.igralci.append(self.igralci.pop(0))  # Rotiraj igralce
         self.runda = Runda(self.igralci)
-        self.runda.deck = Deck()
 
-        self.resnicni_igralec.položaj.append("dealer")
-        self.nespametni_goljuf.položaj.append("small blind")
-        self.ravnodušnež.položaj.append("big blind")
+    def povisaj(self, vrednost):
+        # TODO: povisaj
+        self.runda.nadaljuj()
+
+    def klici(self):
+        # TODO: klici
+        self.runda.nadaljuj()
+
+    def odstopi(self):
+        # TODO: odstopi
+        self.runda.nadaljuj()
+
+    def potrdi(self):
+        # TODO: potrdi
+        self.runda.nadaljuj()
+
+    def stanje(self):
+        for igralec in self.igralci:
+            if type(igralec) == Igralec:
+                break
+        print("Moje karte: {}".format(", ".join(str(karta) for karta in igralec.karte)))
+        print("Miza: {}".format(", ".join(str(karta) for karta in self.miza.karte)))
+        print(self.runda.zgodovina)
+        # narediš kot navadno funkcijo stavi za računalnik in jo potem v vmesniku pokličeš, npr. s pritiskkom na gumb
 
 
+janez = Igralec("janez")
 igra = Igra(janez)
-
-# igra.ustvari_igro(ime_resničnega_igralca)
+igra.nova_runda()
 
 
 # TEST:
@@ -775,7 +799,3 @@ igra = Igra(janez)
 
 # na začetku daš resničnega igralca na pozicijo dealerja
 # pri seznamih, slovarjih lahko narediš izpeljane ponekod in prišparaš vrstico ali dve
-
-# kako bi naredu da se igralec odloči al calla, raisa
-# koliko
-# in to cifro pol uporabu v modelu
