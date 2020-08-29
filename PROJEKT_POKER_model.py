@@ -9,6 +9,7 @@ class Karta:
         self.stevilo = stevilo
 
     def __repr__(self):
+
         slovar_stevil = {11: "'FANT'", 12: "'DAMA'", 13: "'KRALJ'", 14: "'AS'"}
         for i in range(2, 11):
             slovar_stevil[i] = i
@@ -62,7 +63,7 @@ class Igralec:
         self.verjetnost_zmage = 0
         self.zmaga = False
 
-    # položaj je če je big blind, small blind
+    # položaj je če je big blind, small blind, dealer, first player
 
     def __repr__(self):
         ime = self.ime
@@ -75,15 +76,15 @@ class Igralec:
     def folda(self):
         self.fold = True
 
-    def stavi(self, koliko):
+    def stavi(self, koliko, kira_miza):
         self.žetoni -= koliko
-        miza.pot += koliko
+        kira_miza.pot += koliko
         self.žetoni_v_igri += koliko
 
     ##############################################################
 
-    def seznam_kombinacij_kart(self):
-        izbira_iz = self.karte + miza.karte
+    def seznam_kombinacij_kart(self, kira_miza):
+        izbira_iz = self.karte + kira_miza.karte
         return list(combinations(izbira_iz, 5))
         # v metodo moraš napisat za katero mizo se gleda
 
@@ -184,7 +185,7 @@ class Igralec:
                 velikosti_preostalih_kart.append(stevilo)
         return velikosti_preostalih_kart
 
-    def lastnosti_kombinacije_igralca(self):
+    def lastnosti_kombinacije_igralca(self, kira_miza):
         moč_kombinacije = 0
         velikost_pomembne_karte = 0
         velikosti_preostalih_kart = []
@@ -192,11 +193,11 @@ class Igralec:
         najmočnejše_kombinacije_z_najvišjo_karto = []
         absolutno_najmočnejša_kombinacija = None
         # kakšna vrsta kombinacije je najvišja: npr.par
-        for combination in self.seznam_kombinacij_kart(miza):
+        for combination in self.seznam_kombinacij_kart(kira_miza):
             if self.kombinacija_od_peterke(combination) >= moč_kombinacije:
                 moč_kombinacije = self.kombinacija_od_peterke(combination)
         # vse take kombinacije, npr.vsi pari
-        for combination in self.seznam_kombinacij_kart(miza):
+        for combination in self.seznam_kombinacij_kart(kira_miza):
             if self.kombinacija_od_peterke(combination) == moč_kombinacije:
                 najmočnejše_kombinacije_brez_najvišje_karte.append(combination)
         # velikost pomembne karte, v paru je to velikost para
@@ -237,10 +238,10 @@ class Agresivnež(Igralec):
         self.koliko_bo_raisal = 0
         self.bo_callal = False
 
-    def kako_igra(self, ime_resničnega_igralca):
-        verjetnost_zmage = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca).get(agresivnež)
+    def kako_igra(self):
+        verjetnost_zmage = runda.zračunaj_verjetnost_zmag().get(igra.agresivnež)
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
-        if len(runda.kdo_je_v_igri(ime_resničnega_igralca)) >= 3:
+        if len(runda.kdo_je_v_igri()) >= 3:
             # če je manjša verjetnost je raise in call itak false in check, fold pa True
             if verjetnost_zmage > 0.40 and verjetnost_zmage <= 0.75:
                 self.bo_raisal = bool(random.choices([True, False], [1, 4], None, k=1))
@@ -256,7 +257,7 @@ class Agresivnež(Igralec):
                 else:
                     self.koliko_bo_raisal = 1 / random.choice(list(range(1, 10))) * self.žetoni
                 self.bo_raisal = True
-        elif len(runda.kdo_je_v_igri(ime_resničnega_igralca)) < 3:
+        elif len(runda.kdo_je_v_igri()) < 3:
             if verjetnost_zmage <= 0.40 and verjetnost_zmage > 0.25:
                 if self.razlika_za_klicat < (self.žetoni / 3):
                     self.bo_callal = bool(random.choices([True, False], [1, 6], None, k=1))
@@ -304,10 +305,10 @@ class Blefer(Igralec):
         self.koliko_bo_raisal = 0
         self.bo_callal = False
 
-    def kako_igra(self, ime_resničnega_igralca):
-        verjetnost_zmage = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca).get(blefer)
+    def kako_igra(self):
+        verjetnost_zmage = runda.zračunaj_verjetnost_zmag().get(igra.blefer)
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
-        if len(runda.kdo_je_v_igri(ime_resničnega_igralca)) >= 3:
+        if len(runda.kdo_je_v_igri()) >= 3:
             # če je manjša verjetnost je raise in call itak false in check, fold pa True
             if verjetnost_zmage > 0.40 and verjetnost_zmage <= 0.75:
                 self.bo_raisal = bool(random.choices([True, False], [1, 3], None, k=1))
@@ -320,7 +321,7 @@ class Blefer(Igralec):
                 self.bo_raisal = bool(random.choices([True, False], [8, 1], None, k=1))
                 self.bo_raisal = True
                 self.koliko_bo_raisal = random.choice([self.žetoni, 0.5 * self.žetoni])
-        elif len(runda.kdo_je_v_igri(ime_resničnega_igralca)) < 3:
+        elif len(runda.kdo_je_v_igri()) < 3:
             if verjetnost_zmage <= 0.40 and verjetnost_zmage > 0.25:
                 if self.razlika_za_klicat < (self.žetoni / 3):
                     self.bo_raisal = bool(random.choices([True, False], [5, 1], None, k=1))
@@ -354,11 +355,11 @@ class Nespametni_goljuf(Igralec):
         self.bo_raisal = False
         self.bo_callal = False
 
-    def kako_igra(self, ime_resničnega_igralca):
-        verjetnost_zmag_igralcev = runda.zračunaj_verjetnost_zmag(ime_resničnega_igralca)
+    def kako_igra(self):
+        verjetnost_zmage = runda.zračunaj_verjetnost_zmag().get(igra.nespametni_goljuf)
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
         ima_najboljše_karte = False
-        if verjetnost_zmag_igralcev.get(nespametni_goljuf) == max(verjetnost_zmag_igralcev.values()):
+        if verjetnost_zmage == max(verjetnost_zmag_igralcev.values()):
             ima_najboljše_karte = True
         if ima_najboljše_karte:
             self.bo_raisal = bool(random.choices([True, False], [7, 1], None, k=1))
@@ -370,9 +371,9 @@ class Nespametni_goljuf(Igralec):
             else:
                 self.koliko_bo_raisal = 3 / random.choice(list(range(6, 10))) * self.žetoni
         else:
-            if verjetnost_zmag_igralcev.get(nespametni_goljuf) < 30:
+            if verjetnost_zmage < 30:
                 self.bo_callal = bool(random.choices([True, False], [1, 7], None, k=1))
-            elif verjetnost_zmag_igralcev.get(nespametni_goljuf) < 50:
+            elif verjetnost_zmag_igralcev.get(igra.nespametni_goljuf) < 50:
                 self.bo_raisal = bool(random.choices([True, False], [4, 3], None, k=1))
                 self.bo_callal = bool(random.choices([True, False], [5, 2], None, k=1))
                 if self.razlika_za_klicat > 0:
@@ -403,6 +404,7 @@ class Runda:
         self.igralci = igralci
         self.zgodovina = []
 
+        # nova funkcija?
         if len(igralci) == 2:
             self.igralci[0].položaj = ["dealer", "big blind"]
             self.igralci[1].položaj = ["small blind", "first player"]
@@ -416,6 +418,7 @@ class Runda:
             self.igralci[2].položaj = ["big blind"]
             self.igralci[3].položaj = ["first player"]
 
+        # nova funkcija?
         for igralec in self.igralci:
             igralec.karte.clear()
             igralec.kombinacija.clear()
@@ -435,6 +438,7 @@ class Runda:
         self.zacni()
 
     def spremeni_zapis_kart(self):
+        """Vrne zapis kart primeren za računanje verjetnosti s holdem_calc."""
         dek = Deck()
         slovar_kart = {}
         slovar_znakcev = {0: "c", 1: "s", 2: "h", 3: "d"}
@@ -446,41 +450,19 @@ class Runda:
         for karta in dek:
             slovar_kart[karta] = slovar_stevilk.get(karta.stevilo) + slovar_znakcev.get(karta.znak)
         return slovar_kart
-        # vrne zapis kart primeren za računanje verjetnosti s holdem_calc
 
-    def zračunaj_verjetnost_zmag(self, ime_resničnega_igralca):
+    def zračunaj_verjetnost_zmag(self):
         verjetnost_zmag = {}
-        igralci = runda.kdo_je_v_igri(ime_resničnega_igralca)
+        igralci = self.kdo_je_v_igri()
         for igralec in igralci:
             karti_igralca = igralec.karte
-            karta_1 = runda.spremeni_zapis_kart().get(karti_igralca[0])
-            karta_2 = runda.spremeni_zapis_kart().get(karti_igralca[1])
-            karte_miza = miza.karte
-            spremenjene_karte_miza = [runda.spremeni_zapis_kart().get(karta) for karta in karte_miza]
-            if len(miza.karte) == 0:
+            karta_1 = self.spremeni_zapis_kart().get(karti_igralca[0])
+            karta_2 = self.spremeni_zapis_kart().get(karti_igralca[1])
+            spremenjene_karte_miza = [self.spremeni_zapis_kart().get(karta) for karta in self.miza.karte]
+            if len(self.miza.karte) == 0:
                 holdem = holdem_calc.calculate(None, False, 20000, None, [karta_1, karta_2, "?", "?"], False)
                 verjetnost_zmag[igralec] = holdem[1]
-            elif len(miza.karte) == 3:
-                holdem = holdem_calc.calculate(
-                    spremenjene_karte_miza,
-                    False,
-                    20000,
-                    None,
-                    [karta_1, karta_2, "?", "?"],
-                    False,
-                )
-                verjetnost_zmag[igralec] = holdem[1]
-            elif len(miza.karte) == 4:
-                holdem = holdem_calc.calculate(
-                    spremenjene_karte_miza,
-                    False,
-                    20000,
-                    None,
-                    [karta_1, karta_2, "?", "?"],
-                    False,
-                )
-                verjetnost_zmag[igralec] = holdem[1]
-            elif len(miza.karte) == 5:
+            elif len(self.miza.karte) >= 3:
                 holdem = holdem_calc.calculate(
                     spremenjene_karte_miza,
                     False,
@@ -492,7 +474,6 @@ class Runda:
                 verjetnost_zmag[igralec] = holdem[1]
         # karte na mizi, točno računanje-true\simulacija-false, število simulacij, datoteka, karte, false
         # prvo vrže tie, pol zmago prvega, pol zmago drugega
-        # treba je spremenit imena kart, da jih bo lahko funkcija sprejela
         return verjetnost_zmag
 
     #####################################################################################################################
@@ -508,6 +489,7 @@ class Runda:
         return [igralec for igralec in self.kdo_je_živ() if not igralec.fold]
 
     def razdeli_karte(self):
+        """Razdeli karte začenši z igralcem na small blind-u."""
         for i, igralec in enumerate(self.igralci):
             if "small blind" in igralec.položaj:
                 break
@@ -517,18 +499,28 @@ class Runda:
             self.deck.deli_karto(igralec, 2)
 
     def stavi_small_in_big_blind(self):
-        # TODO: Poskrbi za primer all-in
         for igralec in self.kdo_je_živ():
             if "small blind" in igralec.položaj:
-                igralec.žetoni -= self.miza.small_blind
-                self.miza.pot += self.miza.small_blind
+                if self.miza.small_blind > igralec.žetoni:
+                    self.miza.pot += igralec.žetoni
+                    igralec.žetoni = 0
+                    igralec.all_in = True
+                else:
+                    igralec.žetoni -= self.miza.small_blind
+                    self.miza.pot += self.miza.small_blind
             elif "big blind" in igralec.položaj:
-                igralec.žetoni -= self.miza.big_blind
-                self.miza.pot += self.miza.big_blind
+                if igralec.žetoni < self.miza.big_blind:
+                    self.miza.pot += igralec.žetoni
+                    igralec.žetoni = 0
+                    igralec.all_in = True
+                else:
+                    igralec.žetoni -= self.miza.big_blind
+                    self.miza.pot += self.miza.big_blind
+        # to se da na lepše napisat
 
-    def pripni_kombinacije(self, ime_resničnega_igralca):
+    def pripni_kombinacije(self, kira_miza):
         for igralec in self.igralci:
-            igralec.kombinacija.extend(igralec.lastnosti_kombinacije_igralca(miza))
+            igralec.kombinacija.extend(igralec.lastnosti_kombinacije_igralca(kira_miza))
 
     def stave_so_poravnane(self):
         stava = 0
@@ -538,27 +530,34 @@ class Runda:
         for igralec in self.kdo_je_v_igri():
             if igralec.žetoni_v_igri != stava:
                 if not igralec.all_in:
-                    return True
+                    return False
+        return True
 
-        return False
-
-    def pokaži_kako_igralci_igrajo(self, ime_resničnega_igralca):
+    def zračunaj_kako_igrajo__vsi_računalniški_igralci(self):
         for igralec in self.igralci:
-            igralec.kako_igra(ime_resničnega_igralca)
+            igralec.kako_igra()
 
-    def krog_stav(self, ime_resničnega_igralca):
+    def krog_stav(self):
         gremo_dalje = False
         while self.stave_so_poravnane == False:
             for igralec in self.igralci:
                 if "first actor" in igralec.položaj:
-                    if igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
-                        self.vprašaj_igralca_za_potezo(igralec, ime_resničnega_igralca)
+                    if igralec in self.kdo_je_v_igri():
+                        self.vprašaj_računalnik_za_potezo(igralec)
                         gremo_dalje = True
                 elif gremo_dalje:
-                    if igralec in self.kdo_je_v_igri(ime_resničnega_igralca):
-                        self.vprašaj_igralca_za_potezo(igralec, ime_resničnega_igralca)
+                    if igralec in self.kdo_je_v_igri():
+                        self.vprašaj_računalnik_za_potezo(igralec)
 
-    def vprasaj_racunalnik_za_potezo(self, igralec):
+    def pokaži_razlike_za_klicat(self):
+        največja_količina_žetonov_v_igri = 0
+        for igralec in self.kdo_je_v_igri():
+            največja_količina_žetonov_v_igri = max(največja_količina_žetonov_v_igri, igralec.žetoni_v_igri)
+        for igralec in self.kdo_je_v_igri():
+            if največja_količina_žetonov_v_igri > igralec.žetoni_v_igri:
+                igralec.razlika_za_klicat = največja_količina_žetonov_v_igri - igralec.žetoni_v_igri
+
+    def vprašaj_računalnik_za_potezo(self, igralec):
         self.pokaži_razlike_za_klicat()
         if igralec.razlika_za_klicat > 0:
             if igralec.bo_raisal:
@@ -584,15 +583,7 @@ class Runda:
             igralec.check
             return "Check"
 
-    def pokaži_razlike_za_klicat(self):
-        največja_količina_žetonov_v_igri = 0
-        for igralec in self.kdo_je_v_igri():
-            največja_količina_žetonov_v_igri = max(največja_količina_žetonov_v_igri, igralec.žetoni_v_igri)
-        for igralec in self.kdo_je_v_igri():
-            if največja_količina_žetonov_v_igri > igralec.žetoni_v_igri:
-                igralec.razlika_za_klicat = največja_količina_žetonov_v_igri - igralec.žetoni_v_igri
-
-    def kdo_je_zmagal_rundo(self, ime_resničnega_igralca, kiri_igralci):
+    def kdo_je_zmagal_rundo(self, kiri_igralci):
         igralci = kiri_igralci
         zmagovalci = []
         najboljši_hand = [0, 0, 0, 0, 0]
@@ -605,15 +596,14 @@ class Runda:
         for zmagovalec in zmagovalci:
             zmagovalec.zmaga = True
         # lahko ni samo en, če pride do situacije, da ima več igralcev kombinacijo 5 istih kart
-        # če ni side_potov --> kiri_igralci = self.kdo_je_v_igri(ime_resničnega_igralca)
+        # če ni side_potov --> kiri_igralci = self.kdo_je_v_igri()
 
-    def make_side_pots(self, ime_resničnega_igralca):
+    def make_side_pots(self):
         igralci = self.igralci
         stave_igralcev = set()
         side_pots = {}
         for igralec in igralci:
             stave_igralcev.add(igralec.žetoni_v_igri)
-        # naraščajoče stave vseh igralcev so to spodi
         stave_igralcev = list(stave_igralcev)
         stave_igralcev.sort()
 
@@ -637,46 +627,43 @@ class Runda:
             # spremeni stanje stav tako da odšteje del stave, ki se dodeli prejšnjemu side potu
         return side_pots
 
-    def razdeli_pot(self, ime_resničnega_igralca):
-        igralci = self.kdo_je_v_igri(ime_resničnega_igralca)
-        side_pots = self.make_side_pots(ime_resničnega_igralca)
+    def razdeli_pot(self):
+        """Razdeli vse side pot-e."""
+        igralci = self.kdo_je_v_igri()
+        side_pots = self.make_side_pots()
         vse_stave = list(side_pots.keys()).sort()
-        kiri_igralci = [
-            ime_resničnega_igralca,
-            nespametni_goljuf,
-            ravnodušnež,
-            agresivnež,
-            blefer,
-        ]
-        for igralec in igralci:
-            igralec.zmaga = False
-            self.kdo_je_zmagal_rundo(ime_resničnega_igralca, kiri_igralci)
-            if igralec.zmaga:
-                dodaj = 0
-                for stava in vse_stave:
-                    if stava <= side_pots.get(igralec.žetoni_v_igri):
-                        dodaj += stava
-            igralec.žetoni += dodaj
-            kiri_igralci.remove(igralec)
+        while self.miza.pot != 0:
+            for igralec in igralci:
+                igralec.zmaga = False
+                self.kdo_je_zmagal_rundo(igralci)
+                if igralec.zmaga:
+                    dodaj = 0
+                    for stava in vse_stave:
+                        if stava <= side_pots.get(igralec.žetoni_v_igri):
+                            dodaj += stava
+                            del vse_stave[stava]
+                    igralec.žetoni += dodaj
+                    self.miza.pot -= dodaj
+                    igralci.remove(igralec)
 
         # treba je še upoštevat, da tisti ki zmaga ne nujno pobere vsega, če je all_in in so drugi stavli še dalje
 
-    def nova_runda(self, ime_resničnega_igralca):
-        self.krog_stav(ime_resničnega_igralca)
+    def nova_runda(self):
+        self.krog_stav()
         # flop
         self.deck.deli_karto(miza, 3)
-        self.krog_stav(ime_resničnega_igralca)
+        self.krog_stav()
         self.stave_so_poravnane = False
         # na turnu je nov krog stav od začetka
         # turn, river
         for i in range(2):
             self.deck.deli_karto(miza, 1)
-            self.krog_stav(ime_resničnega_igralca)
+            self.krog_stav()
             self.stave_so_poravnane = False
-            # na koncu sicer kaže false tudi če so poravnane, ampak ni s tem nič narobe
-        self.pripni_kombinacije(ime_resničnega_igralca)
-        self.kdo_je_zmagal_rundo(ime_resničnega_igralca, self.kdo_je_v_igri)
-        self.razdeli_pot(ime_resničnega_igralca)
+            # na koncu sicer kaže False tudi če so poravnane, ampak ni s tem nič narobe
+        self.pripni_kombinacije()
+        self.kdo_je_zmagal_rundo(self.kdo_je_v_igri)
+        self.razdeli_pot()
 
     def zacni(self):
         # Ce sem imel small ali big, poklici nadaljuj
@@ -750,52 +737,9 @@ class Igra:
         print("Moje karte: {}".format(", ".join(str(karta) for karta in igralec.karte)))
         print("Miza: {}".format(", ".join(str(karta) for karta in self.miza.karte)))
         print(self.runda.zgodovina)
-        # narediš kot navadno funkcijo stavi za računalnik in jo potem v vmesniku pokličeš, npr. s pritiskkom na gumb
+        # narediš kot navadno funkcijo stavi za računalnik in jo potem v vmesniku pokličeš, npr. s pritiskom na gumb
 
 
 janez = Igralec("janez")
 igra = Igra(janez)
 igra.nova_runda()
-
-
-# TEST:
-# miza = Miza()
-# runda = Runda()
-# runda.deck.premešaj_karte()
-# janez = Igralec("janez")
-# nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
-# blefer = Blefer("blefer")
-# agresivnež = Agresivnež("agresivnež")
-# ravnodušnež = Ravnodušnež("ravnodušnež")
-# print("============")
-# igrači = [janez, nespametni_goljuf, ravnodušnež, agresivnež, blefer]
-# janez.položaj.append("small blind")
-# nespametni_goljuf.položaj.append("big blind")
-# blefer.položaj.append("dealer")
-#
-# runda.razdeli_karte(janez)
-## moraš dodat dek. ker je to metoda v classu Deck, dek je objekt iz razreda Deck
-# runda.deck.deli_karto(miza, 3)
-# runda.deck.deli_karto(miza, 1)
-# runda.deck.deli_karto(miza, 1)
-# print(miza)
-# print("============")
-# runda.pripni_kombinacije(miza, janez)
-# runda.kdo_je_zmagal_rundo(janez, runda.kdo_je_v_igri(janez))
-# runda.pokaži_razlike_za_klicat(janez)
-# for i in igrači:
-#    print(i)
-#    print(i.karte)
-#    print(i.razlika_za_klicat)
-#    print(i.kombinacija)
-#    print(i.zmaga)
-# janez.stavi(10)
-# ravnodušnež.stavi(20)
-# nespametni_goljuf.stavi(100)
-# agresivnež.stavi(150)
-# print(runda.make_side_pots(janez))
-# print(runda.zračunaj_verjetnost_zmag(janez))
-
-
-# na začetku daš resničnega igralca na pozicijo dealerja
-# pri seznamih, slovarjih lahko narediš izpeljane ponekod in prišparaš vrstico ali dve
