@@ -57,11 +57,13 @@ class Igralec:
         self.žetoni_v_igri = 0
         self.razlika_za_klicat = 0
         self.fold = False
+        self.check = False
         self.na_potezi = False
         self.all_in = False
         self.položaj = []
         self.verjetnost_zmage = 0
         self.zmaga = False
+        self.je_bil_na_potezi = False
 
     # položaj je če je big blind, small blind, dealer, first player
 
@@ -71,7 +73,7 @@ class Igralec:
 
     ##############################################################
     def check(self):
-        pass
+        self.check = True
 
     def folda(self):
         self.fold = True
@@ -400,23 +402,17 @@ class Runda:
         if len(igralci) < 1:
             raise ValueError("Poker je igra za dva ali več igralcev. Igraj pasijanso.")
 
-        self.stave_so_poravnane = False
         self.igralci = igralci
         self.zgodovina = []
 
-        # nova funkcija?
-        if len(igralci) == 2:
-            self.igralci[0].položaj = ["dealer", "big blind"]
-            self.igralci[1].položaj = ["small blind", "first player"]
-        elif len(igralci) == 3:
-            self.igralci[0].položaj = ["dealer", "first player"]
-            self.igralci[1].položaj = ["small blind"]
-            self.igralci[2].položaj = ["big blind"]
-        elif len(igralci) >= 4:
-            self.igralci[0].položaj = ["dealer"]
-            self.igralci[1].položaj = ["small blind"]
-            self.igralci[2].položaj = ["big blind"]
-            self.igralci[3].položaj = ["first player"]
+        for i, igralec in enumerate(self.igralci):
+            if type(igralec) == Igralec:
+                break
+
+        self.igralec_resnicni = i
+
+        # Prvi na potezi je dealer
+        self.igralec_na_potezi = 0
 
         # nova funkcija?
         for igralec in self.igralci:
@@ -435,7 +431,7 @@ class Runda:
 
         self.razdeli_karte()
         self.stavi_small_in_big_blind()
-        self.zacni()
+        self.krog_stav()
 
     def spremeni_zapis_kart(self):
         """Vrne zapis kart primeren za računanje verjetnosti s holdem_calc."""
@@ -498,25 +494,41 @@ class Runda:
         for igralec in igralci_po_vrsti:
             self.deck.deli_karto(igralec, 2)
 
+    def naslednji_na_potezi(self):
+        self.igralec_na_potezi = (self.igralec_na_potezi + 1) % len(self.igralci)
+        igralec = self.igralci[self.igralec_na_potezi]
+        while igralec not in self.kdo_je_v_igri():
+            self.igralec_na_potezi = (self.igralec_na_potezi + 1) % len(self.igralci)
+            igralec = self.igralci[self.igralec_na_potezi]
+
+        return igralec
+
+    def dodaj_v_zgodovino(self, akcija, vrednost=None):
+        igralec = self.igralci[self.igralec_na_potezi]
+        self.zgodovina.append((igralec, akcija, vrednost))
+
     def stavi_small_in_big_blind(self):
-        for igralec in self.kdo_je_živ():
-            if "small blind" in igralec.položaj:
-                if self.miza.small_blind > igralec.žetoni:
-                    self.miza.pot += igralec.žetoni
-                    igralec.žetoni = 0
-                    igralec.all_in = True
-                else:
-                    igralec.žetoni -= self.miza.small_blind
-                    self.miza.pot += self.miza.small_blind
-            elif "big blind" in igralec.položaj:
-                if igralec.žetoni < self.miza.big_blind:
-                    self.miza.pot += igralec.žetoni
-                    igralec.žetoni = 0
-                    igralec.all_in = True
-                else:
-                    igralec.žetoni -= self.miza.big_blind
-                    self.miza.pot += self.miza.big_blind
-        # to se da na lepše napisat
+        igralec = self.naslednji_na_potezi()
+        if self.miza.small_blind > igralec.žetoni:
+            self.miza.pot += igralec.žetoni
+            igralec.all_in = True
+            self.dodaj_v_zgodovino("small blind (all in)", igralec.žetoni)
+            igralec.žetoni = 0
+        else:
+            self.miza.pot += self.miza.small_blind
+            self.dodaj_v_zgodovino("small blind", self.miza.small_blind)
+            igralec.žetoni -= self.miza.small_blind
+
+        igralec = self.naslednji_na_potezi()
+        if igralec.žetoni < self.miza.big_blind:
+            self.miza.pot += igralec.žetoni
+            igralec.all_in = True
+            self.dodaj_v_zgodovino("big blind (all in)", igralec.žetoni)
+            igralec.žetoni = 0
+        else:
+            self.miza.pot += self.miza.big_blind
+            self.dodaj_v_zgodovino("big blind", self.miza.big_blind)
+            igralec.žetoni -= self.miza.big_blind
 
     def pripni_kombinacije(self, kira_miza):
         for igralec in self.igralci:
@@ -533,21 +545,28 @@ class Runda:
                     return False
         return True
 
-    def zračunaj_kako_igrajo__vsi_računalniški_igralci(self):
+    def zračunaj_kako_igrajo_vsi_računalniški_igralci(self):
         for igralec in self.igralci:
             igralec.kako_igra()
 
     def krog_stav(self):
-        gremo_dalje = False
-        while self.stave_so_poravnane == False:
-            for igralec in self.igralci:
-                if "first actor" in igralec.položaj:
-                    if igralec in self.kdo_je_v_igri():
-                        self.vprašaj_računalnik_za_potezo(igralec)
-                        gremo_dalje = True
-                elif gremo_dalje:
-                    if igralec in self.kdo_je_v_igri():
-                        self.vprašaj_računalnik_za_potezo(igralec)
+        """Stavijo računalniški igralci.
+
+        Krog se prekine, ko pridemo do resničnega igralca
+        ali ko so stave poravnane.
+        """
+        self.naslednji_na_potezi()
+        while self.igralec_na_potezi != self.igralec_resnicni:
+            if self.stave_so_poravnane():
+                # TODO: poskrbi za nadaljevanje. Ali odpri novo karto ali poglej karte
+                return
+
+            self.vprasaj_racunalnik_za_potezo()
+            self.naslednji_na_potezi()
+
+        # While se ustavi, ko pride do resničnega igralca
+        # Ker pa ne odigramo za resničnega igralca, moramo zmanjšati index.
+        self.igralec_na_potezi -= 1
 
     def pokaži_razlike_za_klicat(self):
         največja_količina_žetonov_v_igri = 0
@@ -557,31 +576,57 @@ class Runda:
             if največja_količina_žetonov_v_igri > igralec.žetoni_v_igri:
                 igralec.razlika_za_klicat = največja_količina_žetonov_v_igri - igralec.žetoni_v_igri
 
-    def vprašaj_računalnik_za_potezo(self, igralec):
+    def igralec_na_potezi_stavi(self, vrednost):
+        igralec = self.igralci[self.igralec_na_potezi]
+
+        igralec.žetoni -= vrednost
+        self.miza.pot += vrednost
+        igralec.žetoni_v_igri += vrednost
+
+    def vprasaj_racunalnik_za_potezo(self):
+        igralec = self.igralci[self.igralec_na_potezi]
         self.pokaži_razlike_za_klicat()
         if igralec.razlika_za_klicat > 0:
             if igralec.bo_raisal:
                 if igralec.koliko_bo_raisal < igralec.žetoni:
-                    igralec.stavi(igralec.koliko_bo_raisal)
-                    return "Stavi: {}".format(igralec.koliko_bo_raisal)
+                    self.dodaj_v_zgodovino("raise", igralec.koliko_bo_raisal)
+                    self.igralec_na_potezi_stavi(igralec.koliko_bo_raisal)
                 else:
-                    igralec.stavi(igralec.žetoni)
+                    self.dodaj_v_zgodovino("all in", igralec.žetoni)
+                    self.igralec_na_potezi_stavi(igralec.žetoni)
                     igralec.all_in = True
-                    return "All in"
+
             elif igralec.bo_callal:
                 if igralec.razlika_za_klicat >= igralec.žetoni:
-                    igralec.stavi(igralec.žetoni)
+                    self.dodaj_v_zgodovino("all in", igralec.žetoni)
+                    self.igralec_na_potezi_stavi(igralec.žetoni)
                     igralec.all_in = True
-                    return "All in"
                 else:
-                    igralec.stavi(igralec.razlika_za_klicat)
-                    return "Stavi: {}".format(igralec.razlika_za_klicat)
+                    self.dodaj_v_zgodovino("call", igralec.razlika_za_klicat)
+                    self.igralec_na_potezi_stavi(igralec.razlika_za_klicat)
             else:
+                self.dodaj_v_zgodovino("fold")
                 igralec.fold
-                return "Fold"
         else:
+            self.dodaj_v_zgodovino("check")
             igralec.check
-            return "Check"
+
+    def potek_runde(self):
+        self.krog_stav()
+        # flop
+        self.deck.deli_karto(self.miza, 3)
+        self.krog_stav()
+        self.stave_so_poravnane = False
+        # na turnu je nov krog stav od začetka
+        # turn, river
+        for i in range(2):
+            self.deck.deli_karto(self.miza, 1)
+            self.krog_stav()
+            self.stave_so_poravnane = False
+            # na koncu sicer kaže False tudi če so poravnane, ampak ni s tem nič narobe
+        self.pripni_kombinacije(self.miza)
+        self.kdo_je_zmagal_rundo(self.kdo_je_v_igri)
+        self.razdeli_pot()
 
     def kdo_je_zmagal_rundo(self, kiri_igralci):
         igralci = kiri_igralci
@@ -648,53 +693,11 @@ class Runda:
 
         # treba je še upoštevat, da tisti ki zmaga ne nujno pobere vsega, če je all_in in so drugi stavli še dalje
 
-    def nova_runda(self):
-        self.krog_stav()
-        # flop
-        self.deck.deli_karto(miza, 3)
-        self.krog_stav()
-        self.stave_so_poravnane = False
-        # na turnu je nov krog stav od začetka
-        # turn, river
-        for i in range(2):
-            self.deck.deli_karto(miza, 1)
-            self.krog_stav()
-            self.stave_so_poravnane = False
-            # na koncu sicer kaže False tudi če so poravnane, ampak ni s tem nič narobe
-        self.pripni_kombinacije()
-        self.kdo_je_zmagal_rundo(self.kdo_je_v_igri)
-        self.razdeli_pot()
-
-    def zacni(self):
-        # Ce sem imel small ali big, poklici nadaljuj
-        # Sicer pa pridi do mene
-        for i, igralec in enumerate(self.igralci):
-            if type(igralec) == Igralec:
-                break
-
-    def nadaljuj(self):
-        for i, igralec in enumerate(self.igralci):
-            if type(igralec) == Igralec:
-                break
-
-        igralci_na_vrsti = self.igralci[i + 1 :] + self.igralci[:i]
-        for igralec in igralci_na_vrsti:
-            if self.stave_so_poravnane():
-                # TODO: poskrbi za nadaljevanje. Ali odpri novo karto ali poglej karte
-                pass
-            poteza = self.vprasaj_racunalnik_za_potezo(igralec)
-            self.zgodovina.append("{} {}".format(igralec, poteza))
-        # TODO: odigraj igralce self.igralci[i+1:]
-        # TODO: deli karte (najprej 3, potem 1, potem 1)
-        # TODO: odigraj igralce self.igralci[:i]
-
 
 class Igra:
     def __init__(self, resnicni_igralec):
         self.konec_igre = False
         self.runda = None
-
-        self.miza = Miza()
 
         self.resnicni_igralec = resnicni_igralec
         self.nespametni_goljuf = Nespametni_goljuf("nespametni_goljuf")
@@ -715,29 +718,36 @@ class Igra:
         self.runda = Runda(self.igralci)
 
     def povisaj(self, vrednost):
-        # TODO: povisaj
-        self.runda.nadaljuj()
+        igralec = self.runda.igralec_na_potezi[self.runda.igralec_resnicni]
+        self.runda.dodaj_v_zgodovino("raise", vrednost)
+        igralec.stavi(vrednost)
+        vrednost = input("koliko:")
+        self.resnicni_igralec.stavi(int(vrednost), self.runda.miza)
 
     def klici(self):
-        # TODO: klici
-        self.runda.nadaljuj()
+        self.runda.naslednji_na_potezi()
+        self.runda.dodaj_v_zgodovino("call", vrednost)
+        self.runda.igralec_na_potezi_stavi(self.resnicni_igralec.razlika_za_klicat)
+        self.runda.krog_stav()
 
     def odstopi(self):
-        # TODO: odstopi
-        self.runda.nadaljuj()
+        self.runda.naslednji_na_potezi()
+        self.runda.dodaj_v_zgodovino("fold", vrednost)
+        self.resnicni_igralec.folda()
 
-    def potrdi(self):
-        # TODO: potrdi
-        self.runda.nadaljuj()
+    def check(self):
+        self.runda.naslednji_na_potezi()
+        self.runda.dodaj_v_zgodovino("check", vrednost)
+        self.resnicni_igralec.check()
 
     def stanje(self):
         for igralec in self.igralci:
             if type(igralec) == Igralec:
                 break
         print("Moje karte: {}".format(", ".join(str(karta) for karta in igralec.karte)))
-        print("Miza: {}".format(", ".join(str(karta) for karta in self.miza.karte)))
-        print(self.runda.zgodovina)
-        # narediš kot navadno funkcijo stavi za računalnik in jo potem v vmesniku pokličeš, npr. s pritiskom na gumb
+        print("Karte na mizi: {}".format(", ".join(str(karta) for karta in self.runda.miza.karte) or "/"))
+        print("Pot: {}".format(self.runda.miza.pot))
+        print("Zgodovina", self.runda.zgodovina)
 
 
 janez = Igralec("janez")
