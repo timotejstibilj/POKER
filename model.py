@@ -14,8 +14,7 @@ def spremeni_zapis_kart():
     slovar_stevilk = {10: "T", 11: "J", 12: "Q", 13: "K", 14: "A"}
     # znaki so club, spade, heart, diamond
     # stevila so jack, queen, king in ace
-    for i in range(2, 10):
-        slovar_stevilk[i] = str(i)
+    slovar_stevilk.update({i: str(i) for i in range(2, 10)})
     for karta in dek:
         slovar_kart[karta] = slovar_stevilk.get(karta.stevilo) + slovar_znakcev.get(karta.znak)
     return slovar_kart
@@ -32,8 +31,7 @@ class Karta:
     def __repr__(self):
 
         slovar_stevil = {11: "'FANT'", 12: "'DAMA'", 13: "'KRALJ'", 14: "'AS'"}
-        for i in range(2, 11):
-            slovar_stevil[i] = i
+        slovar_stevil.update({i: i for i in range(2, 11)})
         znakci = {0: "'križ'", 1: "'pik'", 2: "'srce'", 3: "'kara'"}
         return "({},{})".format(znakci.get(self.znak), slovar_stevil.get(self.stevilo))
 
@@ -92,6 +90,7 @@ class Igralec:
         return ime
 
     ##############################################################
+
     def zračunaj_verjetnost_zmage(self, miza_karte):
         karti_igralca = self.karte
         karta_1 = spremeni_zapis_kart().get(karti_igralca[0])
@@ -114,6 +113,7 @@ class Igralec:
         # prvo vrže tie, pol zmago prvega, pol zmago drugega
 
     ##############################################################
+
     def check(self):
         self.check = True
 
@@ -130,14 +130,11 @@ class Igralec:
     def karte_na_pol_od_peterke(self, peterka):
         znaki = []
         stevila = []
-        vrni = []
-        for card in peterka:
-            znaki.append(card.znak)
-            stevila.append(card.stevilo)
+        for karta in peterka:
+            znaki.append(karta.znak)
+            stevila.append(karta.stevilo)
         stevila.sort(reverse=True)
-        vrni.append(znaki)
-        vrni.append(stevila)
-        return vrni
+        return [znaki, stevila]
 
     def max_stevilo_pojavitev_v_peterki(self, peterka):
         max = 0
@@ -161,26 +158,19 @@ class Igralec:
         return len(set(self.karte_na_pol_od_peterke(peterka)[0])) == 1
 
     def lestvica(self, peterka):
-        najmanjša = 14
-        vrni = False
-        številke = self.karte_na_pol_od_peterke(peterka)[1]
-        for številka in številke:
-            if številka < najmanjša:
-                najmanjša = številka
-        if številke.sort() == list(range(najmanjša, najmanjša + 5)):
-            vrni = True
-        elif številke.sort() == [2, 3, 4, 5, 14]:
-            vrni = True
+        stevilke = self.karte_na_pol_od_peterke(peterka)[1]
+        if stevilke.sort() == list(range(min(stevilke), max(stevilke) + 1)):
+            return True
+        elif stevilke.sort() == [2, 3, 4, 5, 14]:
+            return True
             # ker je AS reprezentiran s 14, ampak je lahko tudi v vlogi 1
-        return vrni
+        return False
 
     def tris(self, peterka):
         return self.max_stevilo_pojavitev_v_peterki(peterka) == 3
 
     def dva_para(self, peterka):
-        druge_karte = set()
-        for stevilo in self.velikosti_preostalih_kart(peterka):
-            druge_karte.add(stevilo)
+        druge_karte = {stevilo for stevilo in self.velikosti_preostalih_kart(peterka)}
         return self.max_stevilo_pojavitev_v_peterki(peterka) == 2 and len(druge_karte) == 2
 
     def par(self, peterka):
@@ -211,18 +201,13 @@ class Igralec:
         velikost_pomembne_karte = 0
         stevila = self.karte_na_pol_od_peterke(peterka)[1]
         for i in range(2, 15):
-            if stevila.count(i) == self.max_stevilo_pojavitev_v_peterki(peterka):
-                if i > velikost_pomembne_karte:
-                    velikost_pomembne_karte = i
+            if stevila.count(i) == self.max_stevilo_pojavitev_v_peterki(peterka) and i > velikost_pomembne_karte:
+                velikost_pomembne_karte = i
         return velikost_pomembne_karte
 
     def velikosti_preostalih_kart(self, peterka):
-        velikosti_preostalih_kart = []
         stevila = self.karte_na_pol_od_peterke(peterka)[1]
-        for stevilo in stevila:
-            if stevilo != self.velikost_pomembne_karte(peterka):
-                velikosti_preostalih_kart.append(stevilo)
-        return velikosti_preostalih_kart
+        return [stevilo for stevilo in stevila if stevilo != self.velikost_pomembne_karte(peterka)]
 
     def lastnosti_kombinacije_igralca(self, kira_miza):
         """Vsakemu igralcu dodeli njegovo najboljšo kombinacijo."""
@@ -466,8 +451,7 @@ class Runda:
         for i, igralec in enumerate(self.igralci):
             if type(igralec) == Igralec:
                 break
-        # TODO: a je ta del kje uporabljen sploh?
-        # pri krogu stav ni več
+
         self.igralec_resnicni = i
 
         # Prvi na potezi mora biti igralec po big blindu. Ker vedno pred stavo kličemo naslednjega igralca, je na začetku na potezi big blind.
@@ -490,8 +474,7 @@ class Runda:
 
         self.razdeli_karte()
         self.stavi_small_in_big_blind()
-        # self.krog_stav()
-        # TODO: self.celotna_runda() namesto krog stav
+        self.krog_stav()
 
     #####################################################################################################################
 
@@ -569,9 +552,8 @@ class Runda:
                 return False
 
         for igralec in self.kdo_je_v_igri():
-            if igralec.žetoni_v_igri != stava:
-                if not igralec.all_in:
-                    return False
+            if igralec.žetoni_v_igri != stava and not igralec.all_in:
+                return False
         return True
 
     def zračunaj_kako_igrajo_vsi_računalniški_igralci(self):
@@ -675,16 +657,13 @@ class Runda:
     def kdo_je_zmagal_rundo(self, kiri_igralci):
         """Pokaže kateri igralci imajo najboljšo kombinacijo. Izbira med igralci, ki jih podamo (ne nujno med vsemi)."""
         igralci = kiri_igralci
-        zmagovalci = []
         najboljši_hand = [0, 0, 0, 0, 0]
         for igralec in igralci:
             if igralec.kombinacija > najboljši_hand:
                 najboljši_hand = igralec.kombinacija
         for igralec in igralci:
             if igralec.kombinacija == najboljši_hand:
-                zmagovalci.append(igralec)
-        for zmagovalec in zmagovalci:
-            zmagovalec.zmaga = True
+                igralec.zmaga
         # lahko ni samo en, če pride do situacije, da ima več igralcev kombinacijo 5 istih kart
         # če ni side_potov --> kiri_igralci = self.kdo_je_v_igri()
 
@@ -780,55 +759,48 @@ class Igra:
         self.igralci.append(self.igralci.pop(0))  # Rotiraj igralce
         self.runda = Runda(self.igralci)
 
-    def celotna_igra(self):
-        if self.runda.kje_smo_v_igri == "konec":
-            self.nova_runda()
+    def poskrbi_za_nadaljevanje_runde(self):
+        self.resnicni_igralec.je_bil_na_potezi = True
+        self.runda.stevilo_potez += 1
+        self.runda.krog_stav()
 
     # TODO:ni nujno da ima dovolj žetonov a callat ali raisat, tako kot pri računalniku, lahko gre all in
     def povisaj(self, vrednost):
         self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("raise", vrednost)
         self.runda.igralec_na_potezi_stavi(vrednost)
-        self.resnicni_igralec.je_bil_na_potezi = True
-        self.runda.stevilo_potez += 1
-        self.runda.krog_stav()
+        self.poskrbi_za_nadaljevanje_runde()
 
     def klici(self):
         vrednost = self.resnicni_igralec.razlika_za_klicat
         self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("call", vrednost)
         self.runda.igralec_na_potezi_stavi(vrednost)
-        self.resnicni_igralec.je_bil_na_potezi = True
-        self.runda.stevilo_potez += 1
-        self.runda.krog_stav()
+        self.poskrbi_za_nadaljevanje_runde()
 
     def odstopi(self):
         self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("fold")
         self.resnicni_igralec.folda()
-        self.resnicni_igralec.je_bil_na_potezi = True
-        self.runda.stevilo_potez += 1
-        self.runda.krog_stav()
+        self.poskrbi_za_nadaljevanje_runde()
 
     def check(self):
         self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("check")
         self.resnicni_igralec.check()
-        self.resnicni_igralec.je_bil_na_potezi = True
-        self.runda.stevilo_potez += 1
-        self.runda.krog_stav()
+        self.poskrbi_za_nadaljevanje_runde()
 
     def stanje(self):
         for igralec in self.igralci:
             if type(igralec) == Igralec:
                 break
-        print("Igralci: {}".format(", ".join(str(igralec) for igralec in self.igralci)))
+        print("Igralci s še kaj žetoni: {}".format(", ".join(str(igralec) for igralec in self.runda.kdo_je_živ())))
         print("Moje karte: {}".format(", ".join(str(karta) for karta in igralec.karte)))
         print("Karte na mizi: {}".format(", ".join(str(karta) for karta in self.runda.miza.karte) or "/"))
         print("Pot: {}".format(self.runda.miza.pot))
         print("Zgodovina:")
         for igralec, akcija, vrednost in self.runda.zgodovina:
-            print("  {:<12} {} {}".format(str(igralec), akcija, vrednost or ""))
+            print("  {:<12} {} {} \n".format(str(igralec), akcija, vrednost or ""))
 
 
 if __name__ == "__main__":
