@@ -443,6 +443,8 @@ class Runda:
         self.igralci = igralci
 
         self.zgodovina = []
+        self.možni_deli_igre = iter(["preflop", "flop", "turn", "river", "razglasi_zmagovalca", "konec"])
+        self.kje_smo_v_igri = next(self.možni_deli_igre)
 
         self.stevilo_potez = 0
 
@@ -574,6 +576,7 @@ class Runda:
                 i.je_bil_na_potezi = False
                 i.razlika_za_klicat = 0
                 i.check = False
+            self.kje_smo_v_igri = next(self.možni_deli_igre)
             return True
         return False
 
