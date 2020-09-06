@@ -497,6 +497,7 @@ class Runda:
         # če so vsi v igri, da naslednjega
         self.igralec_na_potezi = (self.igralec_na_potezi + 1) % len(self.igralci)
         igralec = self.igralci[self.igralec_na_potezi]
+        self.pokaži_razlike_za_klicat()
         # če niso vsi v igri pa se pomika dalje po seznamu
         while igralec not in self.kdo_je_v_igri():
             self.igralec_na_potezi = (self.igralec_na_potezi + 1) % len(self.igralci)
@@ -573,7 +574,8 @@ class Runda:
                 i.je_bil_na_potezi = False
                 i.razlika_za_klicat = 0
                 i.check = False
-        return self.stave_so_poravnane()
+            return True
+        return False
 
     def krog_stav(self):
         """Stavijo računalniški igralci.
@@ -584,14 +586,19 @@ class Runda:
         self.naslednji_na_potezi()
         self.pokaži_razlike_za_klicat()
         if self.pojdi_v_naslednji_krog():
-            self.pojdi_v_naslednji_krog()
             return
+
         while self.igralec_na_potezi != self.igralec_resnicni:
 
             self.vprasaj_racunalnik_za_potezo()
             self.stevilo_potez += 1
             self.igralci[self.igralec_na_potezi].je_bil_na_potezi = True
             self.naslednji_na_potezi()
+
+            self.pokaži_razlike_za_klicat()
+            if self.pojdi_v_naslednji_krog():
+                self.pojdi_v_naslednji_krog()
+                return
 
         # "While" se ustavi, ko pride do resničnega igralca
         # Ker pa ne odigramo za resničnega igralca, moramo zmanjšati index.
@@ -602,7 +609,7 @@ class Runda:
         for igralec in self.igralci:
             največja_količina_žetonov_v_igri = max(največja_količina_žetonov_v_igri, igralec.žetoni_v_igri)
         for igralec in self.kdo_je_živ():
-            if največja_količina_žetonov_v_igri > igralec.žetoni_v_igri:
+            if največja_količina_žetonov_v_igri >= igralec.žetoni_v_igri:
                 igralec.razlika_za_klicat = največja_količina_žetonov_v_igri - igralec.žetoni_v_igri
 
     def igralec_na_potezi_stavi(self, vrednost):
@@ -799,16 +806,18 @@ class Igra:
         self.poskrbi_za_nadaljevanje_runde()
 
     def stanje(self):
+        text = []
         for igralec in self.igralci:
             if type(igralec) == Igralec:
                 break
-        print("Igralci s še kaj žetoni: {}".format(", ".join(str(igralec) for igralec in self.runda.kdo_je_živ())))
-        print("Moje karte: {}".format(", ".join(str(karta) for karta in igralec.karte)))
-        print("Karte na mizi: {}".format(", ".join(str(karta) for karta in self.runda.miza.karte) or "/"))
-        print("Pot: {}".format(self.runda.miza.pot))
-        print("Zgodovina:")
+        text.append("Igralci s še kaj žetoni: {}".format(", ".join(str(igralec) for igralec in self.runda.kdo_je_živ())))
+        text.append("Moje karte: {}".format(", ".join(str(karta) for karta in igralec.karte)))
+        text.append("Karte na mizi: {}".format(", ".join(str(karta) for karta in self.runda.miza.karte) or "/"))
+        text.append("Pot: {}".format(self.runda.miza.pot))
+        text.append("Zgodovina:")
         for igralec, akcija, vrednost in self.runda.zgodovina:
-            print("  {:<12} {} {} \n".format(str(igralec), akcija, vrednost or ""))
+            text.append("  {:<12} {} {} \n".format(str(igralec), akcija, vrednost or ""))
+        return "<br>".join(text)
 
 
 if __name__ == "__main__":
