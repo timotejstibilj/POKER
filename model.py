@@ -315,14 +315,15 @@ class Ravnodušnež(Igralec):
         self.bo_callal = False
 
     def kako_igra(self, miza_karte, stevilo_potez):
-        self.ponastavi_raise_in_call()
-        self.bo_callal = random.choice([True, False])
-        if stevilo_potez < 10:
-            self.bo_raisal = random.choice([True, False])
-            if self.razlika_za_klicat > 0:
-                self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
-            else:
-                self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
+        # self.ponastavi_raise_in_call()
+        # self.bo_callal = random.choice([True, False])
+        # if stevilo_potez < 10:
+        #    self.bo_raisal = random.choice([True, False])
+        #    if self.razlika_za_klicat > 0:
+        #        self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
+        #    else:
+        #        self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
+        self.bo_callal = True
 
 
 class Blefer(Igralec):
@@ -443,7 +444,7 @@ class Runda:
         self.igralci = igralci
 
         self.zgodovina = []
-        self.možni_deli_igre = iter(["preflop", "flop", "turn", "river", "razglasi_zmagovalca", "konec"])
+        self.možni_deli_igre = iter(["preflop", "flop", "turn", "river", "konec"])
         self.kje_smo_v_igri = next(self.možni_deli_igre)
 
         self.stevilo_potez = 0
@@ -588,7 +589,7 @@ class Runda:
         """
         self.naslednji_na_potezi()
         self.pokaži_razlike_za_klicat()
-        if self.pojdi_v_naslednji_krog():
+        if self.stave_so_poravnane():
             return
 
         while self.igralec_na_potezi != self.igralec_resnicni:
@@ -598,10 +599,10 @@ class Runda:
             self.igralci[self.igralec_na_potezi].je_bil_na_potezi = True
             self.naslednji_na_potezi()
 
-            self.pokaži_razlike_za_klicat()
-            if self.pojdi_v_naslednji_krog():
-                self.pojdi_v_naslednji_krog()
+            if self.stave_so_poravnane():
                 return
+
+            self.pokaži_razlike_za_klicat()
 
         # "While" se ustavi, ko pride do resničnega igralca
         # Ker pa ne odigramo za resničnega igralca, moramo zmanjšati index.
@@ -632,6 +633,7 @@ class Runda:
         igralec = self.igralci[self.igralec_na_potezi]
         self.pokaži_razlike_za_klicat()
         igralec.kako_igra(self.miza.karte, self.stevilo_potez)
+        igralec.je_bil_na_potezi = True
         if igralec.all_in:
             self.dodaj_v_zgodovino("je že all in")
             return
@@ -679,7 +681,7 @@ class Runda:
                 najboljši_hand = igralec.kombinacija
         for igralec in igralci:
             if igralec.kombinacija == najboljši_hand:
-                igralec.zmaga
+                igralec.zmaga = True
         # lahko ni samo en, če pride do situacije, da ima več igralcev kombinacijo 5 istih kart
         # če ni side_potov --> kiri_igralci = self.kdo_je_v_igri()
 
@@ -744,8 +746,10 @@ class Runda:
     #            zmagovalci.clear()
     #            dodaj = 0
 
+    # TODO zbrisi to funkcijo, ko urediš zgornjo
     def razdeli_pot(self):
         igralci = self.kdo_je_v_igri()
+        self.kdo_je_zmagal_rundo(self.kdo_je_v_igri())
         for igralec in igralci:
             if igralec.zmaga:
                 igralec.žetoni += self.miza.pot
