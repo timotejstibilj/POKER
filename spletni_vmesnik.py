@@ -33,7 +33,7 @@ def ustvari_igro():
     igre[id_igre] = igra
     bottle.response.set_cookie(IME_PISKOTKA, id_igre, path="/", secret=SKRIVNOST)
 
-    bottle.redirect("/igra/")
+    bottle.redirect("/celotna_igra/")
 
 
 def ugotovi_igro():
@@ -45,10 +45,58 @@ def ugotovi_igro():
         return igre[id]
 
 
-@bottle.get("/igra/")
+@bottle.post("/celotna_igra/")
+def igra():
+    igra = ugotovi_igro()
+    if igra.resnicni_igralec.žetoni not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
+        return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime)
+    else:
+        bottle.redirect("/celotna_runda/")
+
+
+def odpri_karte():
+    igra = ugotovi_igro()
+    if igra.runda.kje_smo_v_igri == "flop":
+        stevilo_kart = 3
+    if igra.runda.kje_smo_v_igri == "turn" or igra.runda.kje_smo_v_igri == "river":
+        stevilo_kart == 1
+    igra.runda.deck.deli_karto(igra.runda.miza, stevilo_kart)
+
+
+def pokazi_stevilo_zetonov():
+    igra = ugotovi_igro()
+    return bottle.template("število_žetonov.html", igra=igra)
+
+
+def poskrbi_za_konec_runde():
+    igra.runda.pripni_kombinacije(igra.runda.miza)
+    igra.runda.razdeli_pot()
+    pokazi_stevilo_zetonov()
+    igra.nova_runda()
+    bottle.redirect("/celotna_igra/")
+
+
+@bottle.post("/celotna_runda/")
+def celotna_runda():
+    igra = ugotovi_igro()
+
+    if igra.runda.pojdi_v_naslednji_krog():
+        odpri_karte()
+    if igra.runda.imamo_predcasnega_zmagovalca():
+        poskrbi_za_konec_runde()
+    if igra.runda.kje_smo_v_igri != "konec":
+        bottle.redirect("/odigraj_krog/")
+    else:
+        poskrbi_za_konec_runde()
+
+
+@bottle.post("/odigraj_krog/")
 def igraj():
     igra = ugotovi_igro()
-    return bottle.template("igra.html", igra=igra)
+    if not igra.runda.stave_so_poravnane():
+        return bottle.template("odigraj_krog.html", igra=igra)
+    else:
+        bottle.redirect("/celotna_runda/")
 
 
 @bottle.post("/povisaj/")
@@ -58,7 +106,7 @@ def povisaj():
     vrednost = int(bottle.request.forms.getunicode("koliko"))
     igra.povisaj(vrednost)
 
-    bottle.redirect("/igra/")
+    bottle.redirect("/odigraj_krog/")
 
 
 @bottle.post("/check/")
@@ -67,7 +115,7 @@ def check():
 
     igra.check()
 
-    bottle.redirect("/igra/")
+    bottle.redirect("/odigraj_krog/")
 
 
 @bottle.post("/klici/")
@@ -76,7 +124,7 @@ def klici():
 
     igra.klici()
 
-    bottle.redirect("/igra/")
+    bottle.redirect("/odigraj_krog/")
 
 
 @bottle.post("/odstopi/")
@@ -85,7 +133,7 @@ def odstopi():
 
     igra.odstopi()
 
-    bottle.redirect("/igra/")
+    bottle.redirect("/odigraj_krog/")
 
 
 @bottle.get("/prekini_igro/")

@@ -758,7 +758,6 @@ class Runda:
 
 class Igra:
     def __init__(self, resnicni_igralec):
-        self.konec_igre = False
         self.runda = None
 
         self.resnicni_igralec = resnicni_igralec
