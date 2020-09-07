@@ -1,0 +1,16 @@
+% rebase("_base.html")
+% if igra.resnicni_igralec.žetoni == 0:
+<h3>
+    Žal ste izgubili vse žetone. Če se želite še enkrat pomeriti, kliknite na "ZAČNI PONOVNO".
+</h3>
+% end
+
+% if len(igra.igralci) == 1:
+<h3>
+    Čestitamo! Premagali ste vse igralce. Če želite odigrati še eno igro, kliknite na "ZAČNI PONOVNO".
+</h3>
+% end
+
+<form action="/nova_igra/" method="POST">
+    <input type="submit" value="ZAČNI PONOVNO">
+</form>
