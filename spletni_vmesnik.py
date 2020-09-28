@@ -58,6 +58,8 @@ def igra():
 
 def odpri_karte():
     igra = ugotovi_igro()
+
+    stevilo_kart = 0
     if igra.runda.kje_smo_v_igri == "flop":
         stevilo_kart = 3
     if igra.runda.kje_smo_v_igri == "turn" or igra.runda.kje_smo_v_igri == "river":
@@ -65,22 +67,25 @@ def odpri_karte():
     igra.runda.deck.deli_karto(igra.runda.miza, stevilo_kart)
 
 
-def pokazi_stevilo_zetonov():
+def pokazi_stanje():
     igra = ugotovi_igro()
-    return bottle.template("število_žetonov.html", igra=igra)
+    return bottle.template("stanje_v_rundi.html", igra=igra)
 
 
 def poskrbi_za_konec_runde():
+    igra = ugotovi_igro()
+
     igra.runda.pripni_kombinacije(igra.runda.miza)
     igra.runda.razdeli_pot()
-    pokazi_stevilo_zetonov()
+    pokazi_stanje()
     igra.nova_runda()
     bottle.redirect("/celotna_igra/")
 
 
-@bottle.post("/celotna_runda/")
+@bottle.get("/celotna_runda/")
 def celotna_runda():
     igra = ugotovi_igro()
+    igra.runda.krog_stav()
 
     if igra.runda.pojdi_v_naslednji_krog():
         odpri_karte()
@@ -95,6 +100,7 @@ def celotna_runda():
 @bottle.get("/odigraj_krog/")
 def igraj():
     igra = ugotovi_igro()
+
     if not igra.runda.stave_so_poravnane():
         return bottle.template("odigraj_krog.html", igra=igra)
     else:
@@ -134,6 +140,15 @@ def odstopi():
     igra = ugotovi_igro()
 
     igra.odstopi()
+
+    bottle.redirect("/odigraj_krog/")
+
+
+@bottle.post("/nadaljuj_s_krogom/")
+def nadaljuj():
+    igra = ugotovi_igro()
+
+    igra.nadaljuj()
 
     bottle.redirect("/odigraj_krog/")
 

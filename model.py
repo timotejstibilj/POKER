@@ -13,7 +13,7 @@ def spremeni_zapis_kart():
     slovar_znakcev = {0: "c", 1: "s", 2: "h", 3: "d"}
     slovar_stevilk = {10: "T", 11: "J", 12: "Q", 13: "K", 14: "A"}
     # znaki so club, spade, heart, diamond
-    # stevila so jack, queen, king in ace
+    # stevila so ten, jack, queen, king in ace
     slovar_stevilk.update({i: str(i) for i in range(2, 10)})
     for karta in dek:
         slovar_kart[karta] = slovar_stevilk.get(karta.stevilo) + slovar_znakcev.get(karta.znak)
@@ -809,6 +809,12 @@ class Igra:
         self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("check")
         self.resnicni_igralec.check = True
+        self.poskrbi_za_nadaljevanje_runde()
+
+    def nadaljuj(self):
+        self.runda.naslednji_na_potezi()
+        self.runda.dodaj_v_zgodovino("je že foldal")
+        self.resnicni_igralec.fold = True
         self.poskrbi_za_nadaljevanje_runde()
 
     def stanje(self):
