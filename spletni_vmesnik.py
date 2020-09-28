@@ -38,6 +38,7 @@ def ustvari_igro():
 
 def ugotovi_igro():
     id = bottle.request.get_cookie(IME_PISKOTKA, secret=SKRIVNOST)
+
     if id is None or id not in igre:
         bottle.response.delete_cookie(IME_PISKOTKA, path="/")
         bottle.redirect("/")
@@ -45,13 +46,14 @@ def ugotovi_igro():
         return igre[id]
 
 
-@bottle.post("/celotna_igra/")
+@bottle.get("/celotna_igra/")
 def igra():
     igra = ugotovi_igro()
-    if igra.resnicni_igralec.žetoni not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
-        return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime)
+
+    if igra.resnicni_igralec not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
+        return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime, igra=igra)
     else:
-        bottle.redirect("/celotna_runda/")
+        return bottle.template("celotna_igra.html")
 
 
 def odpri_karte():
@@ -90,7 +92,7 @@ def celotna_runda():
         poskrbi_za_konec_runde()
 
 
-@bottle.post("/odigraj_krog/")
+@bottle.get("/odigraj_krog/")
 def igraj():
     igra = ugotovi_igro()
     if not igra.runda.stave_so_poravnane():
