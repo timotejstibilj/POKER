@@ -6,6 +6,8 @@ IME_PISKOTKA = "Igra"
 SKRIVNOST = "To je ena velika skrivnost."
 igre = {}
 
+DEL_IGRE = iter(["flop", "turn", "river", "konec"])
+
 # Static files ---------------------------------------------------------------
 
 
@@ -79,6 +81,10 @@ def poskrbi_za_konec_runde():
     igra.runda.razdeli_pot()
     pokazi_stanje()
     igra.nova_runda()
+
+    global DEL_IGRE
+    DEL_IGRE = iter(["flop", "turn", "river", "konec"])
+
     bottle.redirect("/celotna_igra/")
 
 
@@ -104,7 +110,7 @@ def igraj():
     if not igra.runda.stave_so_poravnane():
         return bottle.template("odigraj_krog.html", igra=igra)
     else:
-        bottle.redirect("/celotna_runda/")
+        return bottle.template("pojdi_v_nov_krog.html", del_igre=DEL_IGRE)
 
 
 @bottle.post("/povisaj/")
