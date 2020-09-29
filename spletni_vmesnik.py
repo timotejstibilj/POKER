@@ -8,34 +8,7 @@ igre = {}
 
 DEL_IGRE = iter(["flop", "turn", "river", "konec"])
 
-# Static files ---------------------------------------------------------------
-
-
-@bottle.get("/static/<path:path>")
-def files(path):
-    return bottle.static_file(path, root="static/")
-
-
-# Routes ---------------------------------------------------------------------
-
-
-@bottle.get("/")
-def vpisi_se():
-    return bottle.template("zacetek.html")
-
-
-@bottle.post("/nova_igra/")
-def ustvari_igro():
-    ime_igralca = bottle.request.forms.getunicode("ime_igralca")
-    id_igre = str(uuid.uuid4())
-
-    resnicni_igralec = Igralec(ime_igralca)
-    igra = Igra(resnicni_igralec)
-    igra.nova_runda()
-    igre[id_igre] = igra
-    bottle.response.set_cookie(IME_PISKOTKA, id_igre, path="/", secret=SKRIVNOST)
-
-    bottle.redirect("/celotna_igra/")
+# pomožne funkcije -----------------------------------------------------------
 
 
 def ugotovi_igro():
@@ -46,16 +19,6 @@ def ugotovi_igro():
         bottle.redirect("/")
     else:
         return igre[id]
-
-
-@bottle.get("/celotna_igra/")
-def igra():
-    igra = ugotovi_igro()
-
-    if igra.resnicni_igralec not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
-        return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime, igra=igra)
-    else:
-        return bottle.template("celotna_igra.html")
 
 
 def odpri_karte():
@@ -88,6 +51,46 @@ def poskrbi_za_konec_runde():
     bottle.redirect("/celotna_igra/")
 
 
+# Static files ---------------------------------------------------------------
+
+
+@bottle.get("/static/<path:path>")
+def files(path):
+    return bottle.static_file(path, root="static/")
+
+
+# Routes ---------------------------------------------------------------------
+
+
+@bottle.get("/")
+def vpisi_se():
+    return bottle.template("zacetek.html")
+
+
+@bottle.post("/nova_igra/")
+def ustvari_igro():
+    ime_igralca = bottle.request.forms.getunicode("ime_igralca")
+    id_igre = str(uuid.uuid4())
+
+    resnicni_igralec = Igralec(ime_igralca)
+    igra = Igra(resnicni_igralec)
+    igra.nova_runda()
+    igre[id_igre] = igra
+    bottle.response.set_cookie(IME_PISKOTKA, id_igre, path="/", secret=SKRIVNOST)
+
+    bottle.redirect("/celotna_igra/")
+
+
+@bottle.get("/celotna_igra/")
+def igra():
+    igra = ugotovi_igro()
+
+    if igra.resnicni_igralec not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
+        return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime, igra=igra)
+    else:
+        return bottle.template("celotna_igra.html", igra=igra)
+
+
 @bottle.get("/celotna_runda/")
 def celotna_runda():
     igra = ugotovi_igro()
@@ -112,7 +115,7 @@ def igraj():
     if not igra.runda.stave_so_poravnane():
         return bottle.template("odigraj_krog.html", igra=igra)
     else:
-        return bottle.template("pojdi_v_nov_krog.html", del_igre=DEL_IGRE)
+        return bottle.template("pojdi_v_nov_krog.html", del_igre=DEL_IGRE, igra=igra)
 
 
 @bottle.post("/povisaj/")

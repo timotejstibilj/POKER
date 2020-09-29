@@ -41,6 +41,27 @@ class Karta:
     def __hash__(self):
         return hash((self.znak, self.stevilo))
 
+    # naslednje 3 funkcije za uporabo v html-ju
+    def povej_barvo_karte(self):
+        if self.znak == "križ" or self.znak == "pik":
+            return "black"
+        else:
+            return "red"
+
+    def povej_znak_karte(self):
+        if self.znak == 0:
+            return "clubs"
+        elif self.znak == 1:
+            return "spades"
+        elif self.znak == 2:
+            return "hearts"
+        else:
+            return "diams"
+
+    def povej_število_karte(self):
+        števila = {11: "J", 12: "Q", 13: "K", 14: "A"}
+        return števila.get(self.stevilo, self.stevilo)
+
 
 class Deck(list):
     def __init__(self):

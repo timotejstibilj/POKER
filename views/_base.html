@@ -9,12 +9,80 @@
 
   <!-- Styles -->
 
-  <link rel="stylesheet" href="osnova.css">
+  <style>
+    .main {
+      width: 1000px;
+    }
+
+    .table {
+      background-color: rgb(9, 71, 9);
+      height: 550px;
+      border-radius: 50%;
+      margin-left: 5cm;
+      margin-right: auto;
+      border: 2em solid rgb(13, 63, 24);
+      position: relative;
+      left: 17%
+    }
+
+    .board {
+      position: relative;
+      top: 32%;
+      left: 23%;
+    }
+
+    .card-small {
+      border: .2em solid black;
+      border-radius: 10%;
+      height: 120px;
+      width: 75px;
+      margin-right: 5.5px;
+      float: left;
+      background-color: rgb(245, 249, 252);
+    }
+
+    .card-text {
+      margin: 0;
+      margin-top: 15%;
+      text-align: center;
+      font-size: 2.2em;
+      font-weight: bold;
+      padding: 0;
+    }
+
+    .card-img {
+      text-align: center;
+      margin: 0;
+      font-size: 3.6em;
+    }
+
+    .red {
+      color: red;
+    }
+
+    .black {
+      color: black;
+    }
+  </style>
 
 </head>
 
 <body>
   {{ !base }}
+
+  <div class="main">
+    <div class="table">
+      <div class="board">
+        % for karta in igra.runda.miza.karte:
+        <div class="card-small">
+          <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
+          <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
+        </div>
+        % end
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>
