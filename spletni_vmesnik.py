@@ -64,7 +64,7 @@ def odpri_karte():
     stevilo_kart = 0
     if igra.runda.kje_smo_v_igri == "flop":
         stevilo_kart = 3
-    if igra.runda.kje_smo_v_igri == "turn" or igra.runda.kje_smo_v_igri == "river":
+    elif igra.runda.kje_smo_v_igri != "konec":
         stevilo_kart == 1
     igra.runda.deck.deli_karto(igra.runda.miza, stevilo_kart)
 
@@ -91,10 +91,12 @@ def poskrbi_za_konec_runde():
 @bottle.get("/celotna_runda/")
 def celotna_runda():
     igra = ugotovi_igro()
-    igra.runda.krog_stav()
 
+    if igra.runda.kje_smo_v_igri == "preflop":
+        igra.runda.krog_stav()
     if igra.runda.pojdi_v_naslednji_krog():
         odpri_karte()
+        igra.runda.krog_stav()
     if igra.runda.imamo_predcasnega_zmagovalca():
         poskrbi_za_konec_runde()
     if igra.runda.kje_smo_v_igri != "konec":
@@ -118,6 +120,9 @@ def povisaj():
     igra = ugotovi_igro()
 
     vrednost = int(bottle.request.forms.getunicode("koliko"))
+    if vrednost < igra.resnicni_igralec.razlika_za_klicat:
+        return bottle.template("premajhna_stava.html", igra=igra)
+
     igra.povisaj(vrednost)
 
     bottle.redirect("/odigraj_krog/")

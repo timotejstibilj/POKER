@@ -3,11 +3,24 @@
 
 <b>
     {{igra.stanje()}}
+    =================
 </b>
+<ul>
+    % for karta in igra.runda.miza.karte:
+    <li>
+        {{karta}}
+    </li>
+    % end
+    % for i in igra.igralci:
+    <li>
+        {{i}} ima {{i.žetoni}} žetonov.
+    </li>
+    % end
+</ul>
 
 % if not igra.resnicni_igralec.fold:
 <form action="/povisaj/" method="POST">
-    <input type="number" name="koliko">
+    <input type="number" name="koliko" value={{igra.resnicni_igralec.razlika_za_klicat}}>
     <input type="submit" value="POVISAJ">
 </form>
 % end
