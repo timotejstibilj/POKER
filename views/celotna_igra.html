@@ -1,5 +1,21 @@
 % rebase("_base.html")
 
+
+<ul>
+    % for igralec in igra.igralci:
+    <li>
+        {{igralec}}:
+    </li>
+    <li>
+        {{igralec.žetoni}}
+    </li>
+    <li>
+        {{igralec.žetoni_v_igri}}
+    </li>
+</ul>
+%end
+
+
 <form action="/celotna_runda/">
     <input type="submit" value="ZAČNI IGRO">
 </form>

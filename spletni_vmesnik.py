@@ -24,10 +24,10 @@ def ugotovi_igro():
 def odpri_karte():
     igra = ugotovi_igro()
 
-    stevilo_kart = 0
+    stevilo_kart = 1
     if igra.runda.kje_smo_v_igri == "flop":
         stevilo_kart = 3
-    elif igra.runda.kje_smo_v_igri != "konec":
+    elif igra.runda.kje_smo_v_igri == "turn" or igra.runda.kje_smo_v_igri == "river":
         stevilo_kart == 1
     igra.runda.deck.deli_karto(igra.runda.miza, stevilo_kart)
 
