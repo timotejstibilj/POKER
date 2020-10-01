@@ -32,17 +32,11 @@ def odpri_karte():
     igra.runda.deck.deli_karto(igra.runda.miza, stevilo_kart)
 
 
-def pokazi_stanje():
-    igra = ugotovi_igro()
-    return bottle.template("stanje_v_rundi.html", igra=igra)
-
-
 def poskrbi_za_konec_runde():
     igra = ugotovi_igro()
 
     igra.runda.pripni_kombinacije(igra.runda.miza)
     igra.runda.razdeli_pot()
-    pokazi_stanje()
     igra.nova_runda()
 
     global DEL_IGRE
@@ -112,10 +106,11 @@ def celotna_runda():
 def igraj():
     igra = ugotovi_igro()
 
-    if not igra.runda.stave_so_poravnane():
-        return bottle.template("odigraj_krog.html", igra=igra)
-    else:
+    if igra.runda.stave_so_poravnane() and igra.resnicni_igralec.je_bil_na_potezi:
+        # stave morajo biti poravnane, kjer se upošteva samo igralce v igri. Če resnicni igralec folda, se torej ne upošteva, zato dodaten pogoj.
         return bottle.template("pojdi_v_nov_krog.html", del_igre=DEL_IGRE, igra=igra)
+    else:
+        return bottle.template("odigraj_krog.html", igra=igra)
 
 
 @bottle.post("/povisaj/")

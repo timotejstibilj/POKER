@@ -1,19 +1,14 @@
 % rebase("_base.html")
 
 
-<b>
+<b style="color:whitesmoke">
     {{igra.stanje()}}
     =================
 </b>
-<ul>
-    % for karta in igra.runda.miza.karte:
-    <li>
-        {{karta}}
-    </li>
-    % end
+<ul style="color:whitesmoke">
     % for i in igra.igralci:
     <li>
-        {{i}} ima {{i.žetoni}} žetonov.
+        {{i}} ima {{i.žetoni}} žetonov in v rokah drži {{i.karte}}.
     </li>
     % end
 </ul>
