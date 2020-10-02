@@ -13,6 +13,10 @@
   <!-- Styles -->
 
   <style>
+    .main {
+      width: 1100px;
+    }
+
     body {
       background-color: rgb(36, 36, 36);
     }
@@ -30,6 +34,10 @@
       position: relative;
       top: 32%;
       left: 30%;
+    }
+
+    .karte {
+      position: relative;
     }
 
     .card-small {
@@ -86,9 +94,15 @@
     </div>
   </div>
 
+  <div class="karte">
+    % for karta in igra.runda.miza.karte:
+    <div class="card-small">
+      <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
+      <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
+    </div>
+    % end
+  </div>
 
-  pri teh kartah moraš uredit še css kot pri kartah na mizi
-  postavitev za mizo, karte
 
 </body>
 
