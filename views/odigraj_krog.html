@@ -5,13 +5,7 @@
     {{igra.stanje()}}
     =================
 </b>
-<ul style="color:whitesmoke">
-    % for i in igra.igralci:
-    <li>
-        {{i}} ima {{i.žetoni}} žetonov in v rokah drži {{i.karte}}.
-    </li>
-    % end
-</ul>
+
 
 % if not igra.resnicni_igralec.fold:
 <form action="/povisaj/" method="POST">
@@ -19,6 +13,7 @@
     <input type="submit" value="POVISAJ">
 </form>
 % end
+
 
 % if igra.resnicni_igralec.razlika_za_klicat == 0 and not igra.resnicni_igralec.fold:
 <form action="/check/" method="POST">

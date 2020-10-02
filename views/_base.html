@@ -21,7 +21,7 @@
       background-color: rgb(36, 36, 36);
     }
 
-    .table {
+    .miza {
       background-color: rgb(34, 112, 34);
       height: 500px;
       border-radius: 50%;
@@ -50,6 +50,16 @@
       background-color: rgb(245, 249, 252);
     }
 
+    .karta-zadaj {
+      border: .2em solid black;
+      border-radius: 13%;
+      height: 120px;
+      width: 75px;
+      margin-right: 5.5px;
+      float: left;
+      background-color: rgb(121, 60, 19);
+    }
+
     .card-text {
       margin: 0;
       margin-top: 15%;
@@ -73,6 +83,10 @@
     .black {
       color: black;
     }
+
+    .tabela {
+      color: whitesmoke;
+    }
   </style>
 
 </head>
@@ -82,7 +96,7 @@
 
 
   <div class="main">
-    <div class="table">
+    <div class="miza">
       <div class="board">
         % for karta in igra.runda.miza.karte:
         <div class="card-small">
@@ -94,15 +108,55 @@
     </div>
   </div>
 
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        % for igralec in igra.igralci:
+        <th scope="col">{{igralec.ime}}</th>
+        % end
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">karte</th>
+        % for igralec in igra.igralci:
+        <td>{{igralec.karte}}</td>
+        % end
+      </tr>
+      <tr>
+        <th scope="row">žetoni</th>
+        % for igralec in igra.igralci:
+        <td>{{igralec.žetoni}}</td>
+        % end
+      </tr>
+      <tr>
+        <th scope="row">žetoni v igri</th>
+        % for igralec in igra.igralci:
+        <td>{{igralec.žetoni_v_igri}}</td>
+        % end
+      </tr>
+    </tbody>
+  </table>
+
+  % for igralec in igra.igralci:
   <div class="karte">
-    % for karta in igra.runda.miza.karte:
+    % for karta in igralec.karte:
+    % if igralec == igra.resnicni_igralec:
     <div class="card-small">
       <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
       <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
     </div>
-    % end
+    % elif igra.runda.kje_smo_v_igri == "konec" and igralec in igra.runda.kdo_je_živ():
+    <div class="card-small">
+      <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
+      <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
+    </div>
+    % else:
+    <div class="karta-zadaj">
+    </div>
   </div>
-
+  % end
 
 </body>
 

@@ -580,11 +580,6 @@ class Runda:
                 return False
         return True
 
-    def zračunaj_kako_igrajo_vsi_računalniški_igralci(self):
-        for i, igralec in enumerate(self.igralci):
-            if i != self.igralec_resnicni:
-                igralec.kako_igra(self.miza.karte, self.stevilo_potez)
-
     def imamo_predcasnega_zmagovalca(self):
         return len(self.kdo_je_v_igri()) == 1
 

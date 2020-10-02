@@ -82,7 +82,7 @@ def igra():
     if igra.resnicni_igralec not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
         return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime, igra=igra)
     else:
-        return bottle.template("celotna_igra.html", igra=igra)
+        bottle.redirect("/celotna_runda/")
 
 
 @bottle.get("/celotna_runda/")
