@@ -13,38 +13,15 @@
   <!-- Styles -->
 
   <style>
-    .main {
-      width: 1100px;
-    }
-
     body {
       background-color: rgb(36, 36, 36);
     }
 
-    .miza {
-      background-color: rgb(34, 112, 34);
-      height: 500px;
-      border-radius: 50%;
-      border: 1.4em solid rgb(21, 85, 35);
-      margin-left: 50px;
-    }
-
-
-    .board {
-      position: relative;
-      top: 32%;
-      left: 30%;
-    }
-
-    .karte {
-      position: relative;
-    }
-
-    .card-small {
+    .karta {
       border: .2em solid black;
       border-radius: 10%;
-      height: 120px;
-      width: 75px;
+      height: 107px;
+      width: 66px;
       margin-right: 5.5px;
       float: left;
       background-color: rgb(245, 249, 252);
@@ -53,8 +30,8 @@
     .karta-zadaj {
       border: .2em solid black;
       border-radius: 13%;
-      height: 120px;
-      width: 75px;
+      height: 107px;
+      width: 66px;
       margin-right: 5.5px;
       float: left;
       background-color: rgb(121, 60, 19);
@@ -62,7 +39,6 @@
 
     .card-text {
       margin: 0;
-      margin-top: 15%;
       text-align: center;
       font-size: 2.2em;
       font-weight: bold;
@@ -72,8 +48,8 @@
     .card-img {
       text-align: center;
       margin: 0;
-      font-size: 3.4em;
-      margin-top: -32%
+      font-size: 2.9em;
+      margin-top: -30%
     }
 
     .red {
@@ -84,8 +60,164 @@
       color: black;
     }
 
-    .tabela {
-      color: whitesmoke;
+
+    .poker-table {
+      background-repeat: no-repeat;
+      width: 745px;
+      height: 411px;
+      margin-top: 60px;
+      margin-left: 240px;
+    }
+
+    .seat {
+      width: 150px;
+      height: 150px;
+      position: absolute;
+    }
+
+    .name-chips {
+      width: 160px;
+      height: 65px;
+      background-color: gray;
+      font-size: 19px;
+      color: white;
+      text-align: center;
+      top: 70px;
+      position: absolute;
+      border-radius: 2px;
+    }
+
+    .player-name {
+      width: 100%;
+    }
+
+    .card {
+      width: 50px;
+      height: 73px;
+    }
+
+    .holecards {
+      width: 102px;
+      height: 73px;
+      float: left;
+      position: absolute;
+      left: 20;
+      top: 0;
+    }
+
+    .holecard1 {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .holecard2 {
+      position: absolute;
+      left: 50px;
+      top: 0;
+    }
+
+    .bet {
+      font-size: 16px;
+      color: white;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    #seat3 {
+      left: 890px;
+      top: 30px;
+    }
+
+    .seat3-button {
+      left: 505px;
+      top: 80px;
+    }
+
+    #seat3 .bet {
+      left: 30px;
+      top: 125px;
+    }
+
+    #seat2 {
+      left: 1150px;
+      top: 250px;
+    }
+
+    .seat2-button {
+      left: 655px;
+      top: 215px;
+    }
+
+    #seat2 .bet {
+      left: -50px;
+      top: 75px;
+    }
+
+    #seat1 {
+      left: 650px;
+      top: 490px;
+    }
+
+    .seat1-button {
+      left: 485px;
+      top: 325px;
+    }
+
+    #seat1 .bet {
+      left: 20px;
+      top: -20px;
+    }
+
+
+    #seat4 {
+      left: 150px;
+      top: 250px;
+    }
+
+    .seat4-button {
+      left: 125px;
+      top: 215px;
+    }
+
+    #seat4 .bet {
+      left: 155px;
+      top: 75px;
+    }
+
+    #seat5 {
+      left: 430px;
+      top: 30px;
+    }
+
+    .seat5-button {
+      left: 275px;
+      top: 80px;
+    }
+
+    #seat5 .bet {
+      left: 80px;
+      top: 125px;
+    }
+
+    #board {
+      position: absolute;
+      left: 520px;
+      top: 260px;
+    }
+
+    #pot {
+      position: absolute;
+      left: 625px;
+      top: 370px;
+      font-size: 18px;
+      color: white;
+      text-align: center;
+    }
+
+    .slika1 {
+      width: 1000px;
     }
   </style>
 
@@ -95,68 +227,64 @@
   {{ !base }}
 
 
-  <div class="main">
-    <div class="miza">
-      <div class="board">
+  <div class="poker-table" data-uid="">
+    <img class="slika1" src="/static/miza.png" />
+
+
+    <!-- podatki računalniških igralcev -->
+    % for i in range(1, 5):
+    <div id="seat{{i}}" class="seat">
+      <div class="karta">
+        % for karta in igra.igralci[i].karte:
+
+        % if igra.runda.kje_smo_v_igri == "konec" and igra.igralci[i] in igra.runda.kdo_je_živ():
+        <div class="karta">
+          <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
+          <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
+        </div>
+        % else:
+        <div class="karta-zadaj"> </div>
+        % end
+        <div class="name-chips">
+          <div class="player-name">{{igra.igralci[i].ime}}</div>
+          <div class="chips">{{igra.igralci[i].žetoni}}</div>
+        </div>
+        <div class="bet">{{igra.igralci[i].žetoni_v_igri}}}</div>
+      </div>
+    </div>
+
+    <!-- podatki resnicnega igralca -->
+    <div id="seat1" class="seat">
+      <div class="karta">
+        <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
+        <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
+      </div>
+    </div>
+
+    <div class="name-chips">
+      <div class="player-name">{{igra.resnicni_igralec.ime}}</div>
+      <div class="chips">{{igra.resnicni_igralec.žetoni}</div>
+    </div>
+    <div class="bet">{{igra.resnicni_igralec.žetoni_v_igri}}}</div>
+
+
+
+      <!-- karte na mizi -->
+      <div id="board">
         % for karta in igra.runda.miza.karte:
-        <div class="card-small">
+        <div class="karta">
           <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
           <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
         </div>
         % end
       </div>
-    </div>
-  </div>
 
-  <table class="tabela">
-    <thead>
-      <tr>
-        <th scope="col">#</th>
-        % for igralec in igra.igralci:
-        <th scope="col">{{igralec.ime}}</th>
-        % end
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row">karte</th>
-        % for igralec in igra.igralci:
-        <td>{{igralec.karte}}</td>
-        % end
-      </tr>
-      <tr>
-        <th scope="row">žetoni</th>
-        % for igralec in igra.igralci:
-        <td>{{igralec.žetoni}}</td>
-        % end
-      </tr>
-      <tr>
-        <th scope="row">žetoni v igri</th>
-        % for igralec in igra.igralci:
-        <td>{{igralec.žetoni_v_igri}}</td>
-        % end
-      </tr>
-    </tbody>
-  </table>
-
-  % for igralec in igra.igralci:
-  <div class="karte">
-    % for karta in igralec.karte:
-    % if igralec == igra.resnicni_igralec:
-    <div class="card-small">
-      <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
-      <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
+      <!-- pokaže pot-skupne žetone na mizi -->
+      <div id="pot">
+        <div id="current-pot"></div>
+        <div id="total-pot">Total pot: $1520.25</div>
+      </div>
     </div>
-    % elif igra.runda.kje_smo_v_igri == "konec" and igralec in igra.runda.kdo_je_živ():
-    <div class="card-small">
-      <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
-      <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
-    </div>
-    % else:
-    <div class="karta-zadaj">
-    </div>
-  </div>
-  % end
 
 </body>
 
