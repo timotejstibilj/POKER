@@ -799,7 +799,6 @@ class Igra:
         self.runda.stevilo_potez += 1
         self.runda.krog_stav()
 
-    # TODO:ni nujno da ima dovolj žetonov a callat ali raisat, tako kot pri računalniku, lahko gre all in
     def povisaj(self, koliko):
         vrednost = self.resnicni_igralec.žetoni_v_igri + koliko
         self.runda.naslednji_na_potezi()
@@ -846,6 +845,15 @@ class Igra:
         for igralec, akcija, vrednost in self.runda.zgodovina:
             text.append("  {:<12} {} {} \n".format(str(igralec), akcija, vrednost or ""))
         return "<br>".join(text)
+
+    def vsi_igralci(self):
+        return [
+            self.resnicni_igralec,
+            self.nespametni_goljuf,
+            self.blefer,
+            self.agresivnež,
+            self.ravnodušnež,
+        ]
 
 
 if __name__ == "__main__":

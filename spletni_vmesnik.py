@@ -168,6 +168,13 @@ def zbrisi_piskotek():
     bottle.redirect("/")
 
 
+@bottle.error(500)
+def error500(error):
+    igra = ugotovi_igro()
+
+    return bottle.template("pojdi_na_slepo.html", igra=igra)
+
+
 # Zaženi ---------------------------------------------------------------------
 
 if __name__ == "__main__":

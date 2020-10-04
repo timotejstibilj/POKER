@@ -91,32 +91,6 @@
       width: 100%;
     }
 
-    .card {
-      width: 50px;
-      height: 73px;
-    }
-
-    .holecards {
-      width: 102px;
-      height: 73px;
-      float: left;
-      position: absolute;
-      left: 20;
-      top: 0;
-    }
-
-    .holecard1 {
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
-
-    .holecard2 {
-      position: absolute;
-      left: 50px;
-      top: 0;
-    }
-
     .bet {
       font-size: 16px;
       color: white;
@@ -140,70 +114,70 @@
       top: 125px;
     }
 
-    #seat2 {
+    #seat4 {
       left: 1150px;
       top: 250px;
     }
 
-    .seat2-button {
+    .seat4-button {
       left: 655px;
       top: 215px;
     }
 
-    #seat2 .bet {
+    #seat4 .bet {
       left: -50px;
       top: 75px;
     }
 
-    #seat1 {
+    #seat0 {
       left: 650px;
       top: 490px;
     }
 
-    .seat1-button {
+    .seat0-button {
       left: 485px;
       top: 325px;
     }
 
-    #seat1 .bet {
+    #seat0 .bet {
       left: 20px;
       top: -20px;
     }
 
 
-    #seat4 {
-      left: 150px;
+    #seat1 {
+      left: 160px;
       top: 250px;
     }
 
-    .seat4-button {
+    .seat1-button {
       left: 125px;
       top: 215px;
     }
 
-    #seat4 .bet {
+    #seat1 .bet {
       left: 155px;
       top: 75px;
     }
 
-    #seat5 {
-      left: 430px;
+    #seat2 {
+      left: 440px;
       top: 30px;
     }
 
-    .seat5-button {
+    .seat2-button {
       left: 275px;
       top: 80px;
     }
 
-    #seat5 .bet {
+    #seat2 .bet {
       left: 80px;
       top: 125px;
     }
 
     #board {
       position: absolute;
-      left: 520px;
+      left: 550px;
       top: 260px;
     }
 
@@ -230,61 +204,42 @@
   <div class="poker-table" data-uid="">
     <img class="slika1" src="/static/miza.png" />
 
-
-    <!-- podatki računalniških igralcev -->
-    % for i in range(1, 5):
+    % for i in range(5):
     <div id="seat{{i}}" class="seat">
-      <div class="karta">
-        % for karta in igra.igralci[i].karte:
-
-        % if igra.runda.kje_smo_v_igri == "konec" and igra.igralci[i] in igra.runda.kdo_je_živ():
-        <div class="karta">
-          <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
-          <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
-        </div>
-        % else:
-        <div class="karta-zadaj"> </div>
-        % end
-        <div class="name-chips">
-          <div class="player-name">{{igra.igralci[i].ime}}</div>
-          <div class="chips">{{igra.igralci[i].žetoni}}</div>
-        </div>
-        <div class="bet">{{igra.igralci[i].žetoni_v_igri}}}</div>
+      <div class="name-chips">
+        <div class="player-name">{{igra.vsi_igralci()[i].ime}}</div>
+        <div class="chips">{{igra.vsi_igralci()[i].žetoni}}</div>
       </div>
+      <div class="bet">{{igra.vsi_igralci()[i].žetoni_v_igri}}</div>
     </div>
 
-    <!-- podatki resnicnega igralca -->
-    <div id="seat1" class="seat">
+    % for karta in igra.vsi_igralci()[i].karte:
+    % if igra.vsi_igralci()[i] == igra.resnicni_igralec or (igra.vsi_igralci()[i] in igra.runda.kdo_je_živ() and
+    % igra.runda.kje_smo_v_igri == "konec"):
+    <div class="karta">
+      <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
+      <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
+    </div>
+    % else:
+    <div class="karta-zadaj"></div>
+    % end
+
+    <!-- karte na mizi -->
+    <div id="board">
+      % for karta in igra.runda.miza.karte:
       <div class="karta">
         <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
         <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
       </div>
+      % end
     </div>
 
-    <div class="name-chips">
-      <div class="player-name">{{igra.resnicni_igralec.ime}}</div>
-      <div class="chips">{{igra.resnicni_igralec.žetoni}</div>
+    <!-- pokaže pot-skupne žetone na mizi -->
+    <div id="pot">
+      <div id="current-pot"></div>
+      <div id="total-pot">Celoten pot: {{igra.runda.miza.pot}}</div>
     </div>
-    <div class="bet">{{igra.resnicni_igralec.žetoni_v_igri}}}</div>
-
-
-
-      <!-- karte na mizi -->
-      <div id="board">
-        % for karta in igra.runda.miza.karte:
-        <div class="karta">
-          <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
-          <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
-        </div>
-        % end
-      </div>
-
-      <!-- pokaže pot-skupne žetone na mizi -->
-      <div id="pot">
-        <div id="current-pot"></div>
-        <div id="total-pot">Total pot: $1520.25</div>
-      </div>
-    </div>
+  </div>
 
 </body>
 
