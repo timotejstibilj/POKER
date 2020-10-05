@@ -37,7 +37,6 @@ def poskrbi_za_konec_runde():
 
     igra.runda.pripni_kombinacije(igra.runda.miza)
     igra.runda.razdeli_pot()
-    igra.nova_runda()
 
     global DEL_IGRE
     DEL_IGRE = iter(["flop", "turn", "river", "konec"])
@@ -78,6 +77,7 @@ def ustvari_igro():
 @bottle.get("/celotna_igra/")
 def igra():
     igra = ugotovi_igro()
+    igra.nova_runda()
 
     if igra.resnicni_igralec not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
         return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime, igra=igra)
@@ -89,13 +89,13 @@ def igra():
 def celotna_runda():
     igra = ugotovi_igro()
 
-    if igra.runda.kje_smo_v_igri == "preflop":
-        igra.runda.krog_stav()
     if igra.runda.pojdi_v_naslednji_krog():
         odpri_karte()
         igra.runda.krog_stav()
     if igra.runda.imamo_predcasnega_zmagovalca():
         poskrbi_za_konec_runde()
+    if igra.runda.kje_smo_v_igri == "preflop":
+        igra.runda.krog_stav()
     if igra.runda.kje_smo_v_igri != "konec":
         bottle.redirect("/odigraj_krog/")
     else:
@@ -162,7 +162,7 @@ def nadaljuj():
     bottle.redirect("/odigraj_krog/")
 
 
-@bottle.get("/prekini_igro/")
+@bottle.post("/prekini_igro/")
 def zbrisi_piskotek():
     bottle.response.delete_cookie(IME_PISKOTKA, path="/")
     bottle.redirect("/")

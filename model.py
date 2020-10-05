@@ -43,7 +43,7 @@ class Karta:
 
     # naslednje 3 funkcije za uporabo v html-ju
     def povej_barvo_karte(self):
-        if self.znak == "križ" or self.znak == "pik":
+        if self.znak == 0 or self.znak == 1:
             return "black"
         else:
             return "red"
@@ -336,15 +336,14 @@ class Ravnodušnež(Igralec):
         self.bo_callal = False
 
     def kako_igra(self, miza_karte, stevilo_potez):
-        # self.ponastavi_raise_in_call()
-        # self.bo_callal = random.choice([True, False])
-        # if stevilo_potez < 10:
-        #    self.bo_raisal = random.choice([True, False])
-        #    if self.razlika_za_klicat > 0:
-        #        self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
-        #    else:
-        #        self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
-        self.bo_callal = True
+        self.ponastavi_raise_in_call()
+        self.bo_callal = random.choice([True, False])
+        if stevilo_potez < 10:
+            self.bo_raisal = random.choice([True, False])
+            if self.razlika_za_klicat > 0:
+                self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
+            else:
+                self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
 
 
 class Blefer(Igralec):

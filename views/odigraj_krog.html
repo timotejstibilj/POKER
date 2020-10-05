@@ -9,32 +9,33 @@
 
 % if not igra.resnicni_igralec.fold:
 <form action="/povisaj/" method="POST">
-    <input type="number" name="koliko" value={{igra.resnicni_igralec.razlika_za_klicat}}>
-    <input type="submit" value="POVISAJ">
+    <input type="number" name="koliko" value={{igra.resnicni_igralec.razlika_za_klicat + 1}}>
+    <input type="range" class="form-control-range" id="formControlRange">
+    <button class="btn btn-success btn-lg" type="submit">POVISAJ</button>
 </form>
 % end
 
 
 % if igra.resnicni_igralec.razlika_za_klicat == 0 and not igra.resnicni_igralec.fold:
 <form action="/check/" method="POST">
-    <input type="submit" value="CHECK">
+    <button class="btn btn-success btn-lg" type="submit">CHECK</button>
 </form>
 % end
 
 % if igra.resnicni_igralec.razlika_za_klicat > 0 and not igra.resnicni_igralec.fold:
 <form action="/klici/" method="POST">
-    <input type="submit" value="KLICI">
+    <button class="btn btn-success btn-lg" type="submit">CALL {{igra.resnicni_igralec.razlika_za_klicat}}</button>
 </form>
 % end
 
 % if not igra.resnicni_igralec.fold:
 <form action="/odstopi/" method="POST">
-    <input type="submit" value="FOLD">
+    <button class="btn btn-danger btn-lg" type="submit">FOLD</button>
 </form>
 % end
 
 % if igra.resnicni_igralec.fold:
 <form action="/nadaljuj_s_krogom/" method="POST">
-    <input type="submit" value="nadaljuj s stavami">
+    <input class="btn btn-primary" type="submit" value="nadaljuj s stavami">
 </form>
 % end
