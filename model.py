@@ -141,7 +141,11 @@ class Igralec:
     ##############################################################
 
     def seznam_kombinacij_kart(self, kira_miza):
-        izbira_iz = self.karte + kira_miza.karte
+        if kira_miza.karte == []:
+            # umetno narejen seznam, zato da tudi ko flop še ni na mizi, lahko izbira med petimi kartami
+            izbira_iz = 3 * self.karte
+        else:
+            izbira_iz = self.karte + kira_miza.karte
         return list(combinations(izbira_iz, 5))
         # v metodo moraš napisat za katero mizo se gleda
 
@@ -323,7 +327,7 @@ class Agresivnež(Igralec):
         #            self.koliko_bo_raisal = random.choice(list(range(1, 6))) * self.razlika_za_klicat
         #        else:
         #            self.koliko_bo_raisal = math.floor(1 / random.choice(list(range(1, 5))) * self.žetoni)
-        self.bo_callal = True
+        self.bo_callal = False
 
 
 class Ravnodušnež(Igralec):
@@ -336,14 +340,15 @@ class Ravnodušnež(Igralec):
         self.bo_callal = False
 
     def kako_igra(self, miza_karte, stevilo_potez):
-        self.ponastavi_raise_in_call()
-        self.bo_callal = random.choice([True, False])
-        if stevilo_potez < 10:
-            self.bo_raisal = random.choice([True, False])
-            if self.razlika_za_klicat > 0:
-                self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
-            else:
-                self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
+        # self.ponastavi_raise_in_call()
+        # self.bo_callal = random.choice([True, False])
+        # if stevilo_potez < 10:
+        #    self.bo_raisal = random.choice([True, False])
+        #    if self.razlika_za_klicat > 0:
+        #        self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
+        #    else:
+        #        self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
+        self.bo_callal = False
 
 
 class Blefer(Igralec):
@@ -391,7 +396,7 @@ class Blefer(Igralec):
         #            self.koliko_bo_raisal = random.choices([self.razlika_za_klicat * 5, self.razlika_za_klicat * 8], [3, 1], k=1).pop()
         #        else:
         #            self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 7))) * self.žetoni)
-        self.bo_callal = True
+        self.bo_callal = False
 
 
 class NespametniGoljuf(Igralec):
@@ -450,7 +455,7 @@ class NespametniGoljuf(Igralec):
         #            self.koliko_bo_raisal = random.choice(list(range(1, 5))) * self.razlika_za_klicat
         #        else:
         #            self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 10))) * self.žetoni)
-        self.bo_callal = True
+        self.bo_callal = False
 
 
 ######################################################################################################################
@@ -593,6 +598,7 @@ class Runda:
                 i.razlika_za_klicat = 0
                 i.check = False
             self.kje_smo_v_igri = next(self.možni_deli_igre)
+            self.dodaj_v_zgodovino(self.kje_smo_v_igri)
             return True
         return False
 
@@ -836,13 +842,15 @@ class Igra:
         for igralec in self.igralci:
             if type(igralec) == Igralec:
                 break
-        text.append("Igralci s še kaj žetoni: {}".format(", ".join(str(igralec) for igralec in self.runda.kdo_je_živ())))
-        text.append("Moje karte: {}".format(", ".join(str(karta) for karta in igralec.karte)))
+        text.append("Igralci v igri: {}".format(", ".join(str(igralec) for igralec in self.runda.kdo_je_živ())))
         text.append("Karte na mizi: {}".format(", ".join(str(karta) for karta in self.runda.miza.karte) or "/"))
         text.append("Pot: {}".format(self.runda.miza.pot))
         text.append("Zgodovina:")
         for igralec, akcija, vrednost in self.runda.zgodovina:
-            text.append("  {:<12} {} {} \n".format(str(igralec), akcija, vrednost or ""))
+            if akcija in ["flop", "turn", "river", "konec"]:
+                text.append(akcija)
+            else:
+                text.append("  {:<12} {} {} \n".format(str(igralec), akcija, vrednost or ""))
         return "<br>".join(text)
 
     def vsi_igralci(self):

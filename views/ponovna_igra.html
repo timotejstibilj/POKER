@@ -2,18 +2,18 @@
 
 % if igra.resnicni_igralec.žetoni == 0:
 
-<h3>
+<p style="color:whitesmoke">
     Žal ste izgubili vse žetone. Če se želite še enkrat pomeriti, kliknite na "ZAČNI PONOVNO".
-</h3>
+</p>
 
 % elif len(igra.igralci) == 1:
 
-<h3>
+<p style="color:whitesmoke">
     Čestitamo {{ime}}! Premagali ste vse igralce. Če želite odigrati še eno igro, kliknite na "ZAČNI PONOVNO".
-</h3>
+</p>
 
 % end
 
 <form action="/prekini_igro/" method="POST">
-    <input type="submit" value="ZAČNI PONOVNO">
+    <button type="submit" class="btn btn-secondary btn-lg btn-block">ZAČNI PONOVNO</button>
 </form>

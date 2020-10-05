@@ -89,13 +89,13 @@ def igra():
 def celotna_runda():
     igra = ugotovi_igro()
 
+    if igra.runda.kje_smo_v_igri == "preflop":
+        igra.runda.krog_stav()
     if igra.runda.pojdi_v_naslednji_krog():
         odpri_karte()
         igra.runda.krog_stav()
     if igra.runda.imamo_predcasnega_zmagovalca():
         poskrbi_za_konec_runde()
-    if igra.runda.kje_smo_v_igri == "preflop":
-        igra.runda.krog_stav()
     if igra.runda.kje_smo_v_igri != "konec":
         bottle.redirect("/odigraj_krog/")
     else:

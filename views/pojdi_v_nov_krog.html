@@ -1,5 +1,11 @@
 % rebase("_base.html")
 
+% if igra.runda.imamo_predcasnega_zmagovalca():
 <form action="/celotna_runda/">
-    <input class="btn btn-primary" type="submit" value="Pojdi v {{next(del_igre)}}">
+    <input class="btn btn-primary" type="submit" value="razdeli_pot">
 </form>
+% else:
+<form action="/celotna_runda/">
+    <input class="btn btn-primary" type="submit" value="pojdi v {{next(del_igre)}}">
+</form>
+% end

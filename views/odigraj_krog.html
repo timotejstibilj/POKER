@@ -1,16 +1,10 @@
-% rebase("_base.html")
-
-
-<b style="color:whitesmoke">
-    {{igra.stanje()}}
-    =================
-</b>
+%rebase("_base.html")
 
 
 % if not igra.resnicni_igralec.fold:
 <form action="/povisaj/" method="POST">
-    <input type="number" name="koliko" value={{igra.resnicni_igralec.razlika_za_klicat + 1}}>
-    <input type="range" class="form-control-range" id="formControlRange">
+    <input style="width: 100px; height: 45px" type="number" name="koliko"
+        value={{igra.resnicni_igralec.razlika_za_klicat + 1}}>
     <button class="btn btn-success btn-lg" type="submit">POVISAJ</button>
 </form>
 % end
