@@ -2,29 +2,30 @@
 
 
 % if not igra.resnicni_igralec.fold:
-<form action="/povisaj/" method="POST">
-    <input style="width: 100px; height: 45px" type="number" name="koliko"
+<form style="position: fixed; margin-top: 549px; margin-left: 1225px;" action="/povisaj/" method="POST">
+    <button class="btn btn-success btn-lg" type="submit">RAISE</button>
+    <input style="width: 100px; height: 45px; margin-left: 10px;" type="number" name="koliko"
         value={{igra.resnicni_igralec.razlika_za_klicat + 1}}>
-    <button class="btn btn-success btn-lg" type="submit">POVISAJ</button>
 </form>
 % end
 
 
 % if igra.resnicni_igralec.razlika_za_klicat == 0 and not igra.resnicni_igralec.fold:
-<form action="/check/" method="POST">
+<form style="position: fixed; margin-top: 550px; margin-left: 1100px;" action="/check/" method="POST">
     <button class="btn btn-success btn-lg" type="submit">CHECK</button>
 </form>
 % end
 
 % if igra.resnicni_igralec.razlika_za_klicat > 0 and not igra.resnicni_igralec.fold:
-<form action="/klici/" method="POST">
+<form style="position: fixed; margin-top: 550px; margin-left: 1090px;" action="/klici/" method="POST">
     <button class="btn btn-success btn-lg" type="submit">CALL {{igra.resnicni_igralec.razlika_za_klicat}}</button>
 </form>
 % end
 
 % if not igra.resnicni_igralec.fold:
 <form action="/odstopi/" method="POST">
-    <button class="btn btn-danger btn-lg" type="submit">FOLD</button>
+    <button style="position: fixed; margin-top: 550px; margin-left: 980px;" class="btn btn-danger btn-lg"
+        type="submit">FOLD</button>
 </form>
 % end
 

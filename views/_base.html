@@ -43,13 +43,45 @@
       ;
     }
 
+    .karta01 {
+      position: absolute;
+      margin-left: 730px;
+      margin-top: -54px;
+    }
+
+    .karta11 {
+      position: absolute;
+      margin-left: 230px;
+      margin-top: -294px;
+    }
+
+    .karta21 {
+      position: absolute;
+      margin-left: 510px;
+      margin-top: -514px;
+    }
+
+    .karta31 {
+      position: absolute;
+      margin-left: 960px;
+      margin-top: -514px;
+    }
+
+    .karta41 {
+      position: absolute;
+      margin-left: 1221px;
+      margin-top: -294px;
+    }
+
 
     #karta-fold0 {
       transform: rotate(15deg);
+      background-color: rgb(165, 163, 162);
     }
 
     #karta-fold1 {
-      transform: rotate(-15deg);
+      transform: rotate(15deg);
+      background-color: rgb(165, 163, 162);
     }
 
     .card-text {
@@ -80,7 +112,7 @@
       background-repeat: no-repeat;
       width: 745px;
       height: 411px;
-      margin-top: 60px;
+      margin-top: 76px;
       margin-left: 240px;
     }
 
@@ -88,6 +120,7 @@
       width: 150px;
       height: 150px;
       position: absolute;
+      z-index: 1;
     }
 
     .name-chips {
@@ -98,8 +131,10 @@
       color: white;
       text-align: center;
       top: 70px;
+      margin-left: -11px;
       position: absolute;
       border-radius: 2px;
+      z-index: 2;
     }
 
     #kvadratek-fold {
@@ -132,8 +167,8 @@
     }
 
     #seat3 .bet {
-      left: 30px;
-      top: 125px;
+      left: 35px;
+      top: 135px;
     }
 
     #seat4 {
@@ -147,12 +182,12 @@
     }
 
     #seat4 .bet {
-      left: -50px;
-      top: 75px;
+      left: -72px;
+      top: 85px;
     }
 
     #seat0 {
-      left: 650px;
+      left: 660px;
       top: 490px;
     }
 
@@ -162,8 +197,8 @@
     }
 
     #seat0 .bet {
-      left: 20px;
-      top: -20px;
+      left: 32px;
+      top: -51px;
     }
 
 
@@ -178,8 +213,8 @@
     }
 
     #seat1 .bet {
-      left: 155px;
-      top: 75px;
+      left: 144px;
+      top: 85px;
     }
 
     #seat2 {
@@ -193,8 +228,8 @@
     }
 
     #seat2 .bet {
-      left: 80px;
-      top: 125px;
+      left: 35px;
+      top: 135px;
     }
 
     #board {
@@ -205,9 +240,10 @@
 
     #pot {
       position: absolute;
-      left: 625px;
+      left: 680px;
       top: 370px;
-      font-size: 18px;
+      font-size: 23px;
+      font-style: oblique;
       color: white;
       text-align: center;
     }
@@ -243,26 +279,25 @@
 
       % for stevilo, karta in enumerate(igra.vsi_igralci()[i].karte):
       % if (igra.vsi_igralci()[i] == igra.resnicni_igralec and not igra.resnicni_igralec.fold) or (igra.vsi_igralci()[i]
-      % in igra.runda.kdo_je_živ() and igra.runda.kje_smo_v_igri == "konec"):
-      <div class="karta karta{{stevilo}}">
+      % in igra.runda.kdo_je_živ() and igra.runda.kje_smo_v_igri == "konec" and not igra.vsi_igralci()[i].fold):
+      <div class="karta karta{{i}}{{stevilo}}">
         <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
         <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
       </div>
 
       % elif igra.vsi_igralci()[i] == igra.resnicni_igralec:
-      <div id="karta-fold{{stevilo}}" class="karta karta{{stevilo}}">
+      <div id="karta-fold{{stevilo}}" class="karta karta{{i}}{{stevilo}}">
         <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
         <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
       </div>
 
-      % elif not igra.vsi_igralci()[i].fold:
-      <div class="karta-zadaj karta{{stevilo}}"></div>
+      % elif igra.vsi_igralci()[i] != igra.resnicni_igralec and not igra.vsi_igralci()[i].fold:
+      <div class="karta-zadaj karta{{i}}{{stevilo}}"></div>
+
       % else:
-      <div id="karta-fold{{stevilo}}" class="karta-zadaj karta{{stevilo}}"></div>
+      <div id="karta-fold{{stevilo}}" class="karta-zadaj karta{{i}}{{stevilo}}"></div>
       % end
     </div>
-
-
 
     <!-- karte na mizi -->
     <div id="board">
@@ -276,8 +311,7 @@
 
     <!-- pokaže pot-skupne žetone na mizi -->
     <div id="pot">
-      <div id="current-pot"></div>
-      <div id="total-pot">Celoten pot: {{igra.runda.miza.pot}}</div>
+      <div>pot: <span class="badge badge-secondary">{{igra.runda.miza.pot}}</span></div>
     </div>
   </div>
 

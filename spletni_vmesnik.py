@@ -25,23 +25,17 @@ def odpri_karte():
     igra = ugotovi_igro()
 
     stevilo_kart = 1
-    if igra.runda.kje_smo_v_igri == "flop":
+    if igra.runda.imamo_predcasnega_zmagovalca():
+        stevilo_kart = 0
+    elif igra.runda.kje_smo_v_igri == "flop":
         stevilo_kart = 3
-    elif igra.runda.kje_smo_v_igri == "turn" or igra.runda.kje_smo_v_igri == "river":
-        stevilo_kart == 1
     igra.runda.deck.deli_karto(igra.runda.miza, stevilo_kart)
 
 
-def poskrbi_za_konec_runde():
-    igra = ugotovi_igro()
-
-    igra.runda.pripni_kombinacije(igra.runda.miza)
-    igra.runda.razdeli_pot()
+def ponastavi_dele_igre():
 
     global DEL_IGRE
     DEL_IGRE = iter(["flop", "turn", "river", "konec"])
-
-    bottle.redirect("/celotna_igra/")
 
 
 # Static files ---------------------------------------------------------------
@@ -91,15 +85,28 @@ def celotna_runda():
 
     if igra.runda.kje_smo_v_igri == "preflop":
         igra.runda.krog_stav()
-    if igra.runda.pojdi_v_naslednji_krog():
+    if igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
         odpri_karte()
         igra.runda.krog_stav()
     if igra.runda.imamo_predcasnega_zmagovalca():
-        poskrbi_za_konec_runde()
+        igra.runda.pripni_kombinacije(igra.runda.miza)
+        return bottle.template("pokazi_zmagovalca.html", igra=igra)
     if igra.runda.kje_smo_v_igri != "konec":
         bottle.redirect("/odigraj_krog/")
     else:
-        poskrbi_za_konec_runde()
+        igra.runda.pripni_kombinacije(igra.runda.miza)
+        return bottle.template("pokazi_zmagovalca.html", igra=igra)
+
+
+@bottle.post("/konec_runde/")
+def konec():
+    igra = ugotovi_igro()
+
+    igra.runda.razdeli_pot()
+
+    ponastavi_dele_igre()
+
+    bottle.redirect("/celotna_igra/")
 
 
 @bottle.get("/odigraj_krog/")
