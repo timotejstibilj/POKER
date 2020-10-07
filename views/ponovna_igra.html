@@ -2,18 +2,20 @@
 
 % if igra.resnicni_igralec.žetoni == 0:
 
-<p style="color:whitesmoke">
-    Žal ste izgubili vse žetone. Če se želite še enkrat pomeriti, kliknite na "ZAČNI PONOVNO".
+<p style="color:whitesmoke;position: fixed; margin-top: 150px; margin-left: 460px; text-align: center; font-size: 20;">
+    Žal ste izgubili vse žetone. <br>Če se želite še enkrat pomeriti, kliknite na spodnji gumb.
 </p>
 
 % elif len(igra.igralci) == 1:
 
-<p style="color:whitesmoke">
-    Čestitamo {{ime}}! Premagali ste vse igralce. Če želite odigrati še eno igro, kliknite na "ZAČNI PONOVNO".
+<p
+    style="color:whitesmoke;position: fixed; fixed; margin-top: 150px; margin-left: 460px; text-align: center; font-size: 20;">
+    Čestitamo {{ime}}! Premagali ste vse igralce. Če želite odigrati še eno igro, kliknite na spodnji gumb.
 </p>
 
 % end
 
 <form action="/prekini_igro/" method="POST">
-    <button type="submit" class="btn btn-secondary btn-lg btn-block">ZAČNI PONOVNO</button>
+    <button style="position: fixed; margin-top: 235px; margin-left: 625px;" type="submit"
+        class="btn btn-secondary btn-lg">ZAČNI PONOVNO</button>
 </form>
