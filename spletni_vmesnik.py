@@ -76,26 +76,56 @@ def igra():
     if igra.resnicni_igralec not in igra.runda.kdo_je_živ() or len(igra.igralci) == 1:
         return bottle.template("ponovna_igra", ime=igra.resnicni_igralec.ime, igra=igra)
     else:
+        bottle.redirect("/krog_stav/")
+
+
+@bottle.get("/krog_stav/")
+def krog_stav():
+    """Stavijo računalniški igralci.
+    Krog se prekine, ko pridemo do resničnega igralca
+    ali ko so stave poravnane.
+    """
+
+    igra = ugotovi_igro()
+
+    igra.runda.naslednji_na_potezi()
+    igra.runda.pokaži_razlike_za_klicat()
+    if igra.runda.stave_so_poravnane() and igra.resnicni_igralec.je_bil_na_potezi:
         bottle.redirect("/celotna_runda/")
+
+    if igra.runda.igralec_na_potezi != igra.runda.igralec_resnicni:
+
+        igra.runda.vprasaj_racunalnik_za_potezo()
+        igra.runda.stevilo_potez += 1
+        igra.igralci[igra.runda.igralec_na_potezi].je_bil_na_potezi = True
+        igra.runda.pokaži_razlike_za_klicat()
+
+        return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+
+    bottle.redirect("/celotna_runda/")
 
 
 @bottle.get("/celotna_runda/")
 def celotna_runda():
     igra = ugotovi_igro()
 
-    if igra.runda.kje_smo_v_igri == "preflop":
-        igra.runda.krog_stav()
-    if igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
-        odpri_karte()
-        igra.runda.krog_stav()
     if igra.runda.imamo_predcasnega_zmagovalca():
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
+        # stave morajo biti poravnane, kjer se upošteva samo igralce v igri. Če resnicni igralec folda, se torej ne upošteva, zato dodaten pogoj.
+    if igra.resnicni_igralec.je_bil_na_potezi and igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
+        return bottle.template("pojdi_v_nov_krog.html", igra=igra, del_igre=DEL_IGRE)
     if igra.runda.kje_smo_v_igri != "konec":
-        bottle.redirect("/odigraj_krog/")
+        return bottle.template("odigraj_krog.html", igra=igra)
     else:
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
+
+
+@bottle.post("/odpri_karte/")
+def odpri():
+    odpri_karte()
+    bottle.redirect("/krog_stav/")
 
 
 @bottle.post("/konec_runde/")
@@ -109,17 +139,6 @@ def konec():
     bottle.redirect("/celotna_igra/")
 
 
-@bottle.get("/odigraj_krog/")
-def igraj():
-    igra = ugotovi_igro()
-
-    if igra.runda.stave_so_poravnane() and igra.resnicni_igralec.je_bil_na_potezi:
-        # stave morajo biti poravnane, kjer se upošteva samo igralce v igri. Če resnicni igralec folda, se torej ne upošteva, zato dodaten pogoj.
-        return bottle.template("pojdi_v_nov_krog.html", del_igre=DEL_IGRE, igra=igra)
-    else:
-        return bottle.template("odigraj_krog.html", igra=igra)
-
-
 @bottle.post("/povisaj/")
 def povisaj():
     igra = ugotovi_igro()
@@ -130,7 +149,7 @@ def povisaj():
 
     igra.povisaj(vrednost)
 
-    bottle.redirect("/odigraj_krog/")
+    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
 
 @bottle.post("/check/")
@@ -139,7 +158,7 @@ def check():
 
     igra.check()
 
-    bottle.redirect("/odigraj_krog/")
+    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
 
 @bottle.post("/klici/")
@@ -148,7 +167,7 @@ def klici():
 
     igra.klici()
 
-    bottle.redirect("/odigraj_krog/")
+    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
 
 @bottle.post("/odstopi/")
@@ -157,7 +176,7 @@ def odstopi():
 
     igra.odstopi()
 
-    bottle.redirect("/odigraj_krog/")
+    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
 
 @bottle.post("/nadaljuj_s_krogom/")
@@ -166,7 +185,7 @@ def nadaljuj():
 
     igra.nadaljuj()
 
-    bottle.redirect("/odigraj_krog/")
+    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
 
 @bottle.post("/prekini_igro/")

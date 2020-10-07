@@ -327,7 +327,7 @@ class Agresivnež(Igralec):
         #            self.koliko_bo_raisal = random.choice(list(range(1, 6))) * self.razlika_za_klicat
         #        else:
         #            self.koliko_bo_raisal = math.floor(1 / random.choice(list(range(1, 5))) * self.žetoni)
-        self.bo_callal = False
+        self.bo_callal = True
 
 
 class Ravnodušnež(Igralec):
@@ -348,7 +348,7 @@ class Ravnodušnež(Igralec):
         #        self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
         #    else:
         #        self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
-        self.bo_callal = False
+        self.bo_callal = True
 
 
 class Blefer(Igralec):
@@ -455,7 +455,7 @@ class NespametniGoljuf(Igralec):
         #            self.koliko_bo_raisal = random.choice(list(range(1, 5))) * self.razlika_za_klicat
         #        else:
         #            self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 10))) * self.žetoni)
-        self.bo_callal = False
+        self.bo_callal = True
 
 
 ######################################################################################################################
@@ -500,7 +500,6 @@ class Runda:
 
         self.razdeli_karte()
         self.stavi_small_in_big_blind()
-        self.krog_stav()
 
     #####################################################################################################################
 
@@ -601,33 +600,6 @@ class Runda:
             self.dodaj_v_zgodovino(self.kje_smo_v_igri)
             return True
         return False
-
-    def krog_stav(self):
-        """Stavijo računalniški igralci.
-
-        Krog se prekine, ko pridemo do resničnega igralca
-        ali ko so stave poravnane.
-        """
-        self.naslednji_na_potezi()
-        self.pokaži_razlike_za_klicat()
-        if self.stave_so_poravnane():
-            return
-
-        while self.igralec_na_potezi != self.igralec_resnicni:
-
-            self.vprasaj_racunalnik_za_potezo()
-            self.stevilo_potez += 1
-            self.igralci[self.igralec_na_potezi].je_bil_na_potezi = True
-            self.naslednji_na_potezi()
-
-            if self.stave_so_poravnane():
-                return
-
-            self.pokaži_razlike_za_klicat()
-
-        # "While" se ustavi, ko pride do resničnega igralca
-        # Ker pa ne odigramo za resničnega igralca, moramo zmanjšati index.
-        self.igralec_na_potezi -= 1
 
     def pokaži_razlike_za_klicat(self):
         največja_količina_žetonov_v_igri = 0
@@ -802,11 +774,9 @@ class Igra:
     def poskrbi_za_nadaljevanje_runde(self):
         self.resnicni_igralec.je_bil_na_potezi = True
         self.runda.stevilo_potez += 1
-        self.runda.krog_stav()
 
     def povisaj(self, koliko):
         vrednost = self.resnicni_igralec.žetoni_v_igri + koliko
-        self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("raise", vrednost)
         self.runda.igralec_na_potezi_stavi(koliko)
         self.poskrbi_za_nadaljevanje_runde()
@@ -814,25 +784,21 @@ class Igra:
     def klici(self):
         razlika = self.resnicni_igralec.razlika_za_klicat
         vrednost = razlika + self.resnicni_igralec.žetoni_v_igri
-        self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("call", vrednost)
         self.runda.igralec_na_potezi_stavi(razlika)
         self.poskrbi_za_nadaljevanje_runde()
 
     def odstopi(self):
-        self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("fold")
         self.resnicni_igralec.folda()
         self.poskrbi_za_nadaljevanje_runde()
 
     def check(self):
-        self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("check")
         self.resnicni_igralec.check = True
         self.poskrbi_za_nadaljevanje_runde()
 
     def nadaljuj(self):
-        self.runda.naslednji_na_potezi()
         self.runda.dodaj_v_zgodovino("je že foldal")
         self.resnicni_igralec.fold = True
         self.poskrbi_za_nadaljevanje_runde()

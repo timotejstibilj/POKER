@@ -1,13 +1,7 @@
 % rebase("_base.html")
 
-% if igra.runda.imamo_predcasnega_zmagovalca():
-<form action="/celotna_runda/">
-    <input style="position: fixed; margin-top: 550px; margin-left: 1100px;" class="btn btn-primary btn-lg" type="submit"
-        value="pokazi zmagovalca">
-</form>
-% else:
-<form action="/celotna_runda/">
+
+<form action="/odpri_karte/" method="POST">
     <input style="position: fixed; margin-top: 550px; margin-left: 1100px;" class="btn btn-primary btn-lg" type="submit"
         value="pojdi v {{next(del_igre)}}">
 </form>
-% end
