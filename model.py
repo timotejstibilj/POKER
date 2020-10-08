@@ -564,6 +564,7 @@ class Runda:
             igralec.žetoni_v_igri += self.miza.big_blind
             self.dodaj_v_zgodovino("big blind", self.miza.big_blind)
             igralec.žetoni -= self.miza.big_blind
+        self.naslednji_na_potezi()
 
     def pripni_kombinacije(self, kira_miza):
         for igralec in self.igralci:
@@ -633,8 +634,6 @@ class Runda:
         if igralec.fold:
             self.dodaj_v_zgodovino("je že fold-al")
             return
-
-        self.stevilo_potez += 1
 
         if igralec.razlika_za_klicat > 0:
             if igralec.bo_raisal:
@@ -796,11 +795,6 @@ class Igra:
     def check(self):
         self.runda.dodaj_v_zgodovino("check")
         self.resnicni_igralec.check = True
-        self.poskrbi_za_nadaljevanje_runde()
-
-    def nadaljuj(self):
-        self.runda.dodaj_v_zgodovino("je že foldal")
-        self.resnicni_igralec.fold = True
         self.poskrbi_za_nadaljevanje_runde()
 
     def stanje(self):

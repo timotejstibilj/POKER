@@ -123,7 +123,7 @@
       z-index: 1;
     }
 
-    .name-chips {
+    .kvadratek {
       width: 160px;
       height: 55px;
       font-size: 17px;
@@ -145,10 +145,6 @@
       background-color: rgb(85, 85, 85);
     }
 
-    .player-name {
-      width: 100%;
-    }
-
     .bet {
       font-size: 16px;
       color: white;
@@ -161,7 +157,7 @@
       top: 30px;
     }
 
-    .seat3-button {
+    .seat3-položaj {
       left: 505px;
       top: 80px;
     }
@@ -176,7 +172,7 @@
       top: 250px;
     }
 
-    .seat4-button {
+    .seat4-položaj {
       left: 655px;
       top: 215px;
     }
@@ -191,7 +187,7 @@
       top: 490px;
     }
 
-    .seat0-button {
+    .seat0-položaj {
       left: 485px;
       top: 325px;
     }
@@ -207,7 +203,7 @@
       top: 250px;
     }
 
-    .seat1-button {
+    .seat1-položaj {
       left: 125px;
       top: 215px;
     }
@@ -222,7 +218,7 @@
       top: 30px;
     }
 
-    .seat2-button {
+    .seat2-položaj {
       left: 275px;
       top: 80px;
     }
@@ -258,7 +254,7 @@
 <body>
   {{ !base }}
 
-  <div class="poker-table" data-uid="">
+  <div class="poker-table">
     <img class="slika1" src="/static/miza.png" />
 
     % for i in range(5):
@@ -266,14 +262,14 @@
     <div id="seat{{i}}" class="seat">
       <div class="bet badge badge-primary">{{igra.vsi_igralci()[i].žetoni_v_igri}}</div>
       % if igra.vsi_igralci()[i].fold:
-      <div id="kvadratek-fold" class="name-chips">
-        <div class="player-name">{{igra.vsi_igralci()[i].ime}}</div>
-        <div class="chips">{{igra.vsi_igralci()[i].žetoni}}</div>
+      <div id="kvadratek-fold" class="kvadratek">
+        <div>{{igra.vsi_igralci()[i].ime}}</div>
+        <div>{{igra.vsi_igralci()[i].žetoni}}</div>
       </div>
       % else:
-      <div id="kvadratek-igra" class="name-chips">
-        <div class="player-name">{{igra.vsi_igralci()[i].ime}}</div>
-        <div class="chips">{{igra.vsi_igralci()[i].žetoni}}</div>
+      <div id="kvadratek-igra" class="kvadratek">
+        <div>{{igra.vsi_igralci()[i].ime}}</div>
+        <div>{{igra.vsi_igralci()[i].žetoni}}</div>
       </div>
       % end
 

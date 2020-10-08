@@ -6,8 +6,6 @@ IME_PISKOTKA = "Igra"
 SKRIVNOST = "To je ena velika skrivnost."
 igre = {}
 
-DEL_IGRE = iter(["flop", "turn", "river", "konec"])
-
 # pomožne funkcije -----------------------------------------------------------
 
 
@@ -30,12 +28,6 @@ def odpri_karte():
     elif igra.runda.kje_smo_v_igri == "flop":
         stevilo_kart = 3
     igra.runda.deck.deli_karto(igra.runda.miza, stevilo_kart)
-
-
-def ponastavi_dele_igre():
-
-    global DEL_IGRE
-    DEL_IGRE = iter(["flop", "turn", "river", "konec"])
 
 
 # Static files ---------------------------------------------------------------
@@ -88,19 +80,20 @@ def krog_stav():
 
     igra = ugotovi_igro()
 
-    igra.runda.naslednji_na_potezi()
     igra.runda.pokaži_razlike_za_klicat()
-    if igra.runda.stave_so_poravnane() and igra.resnicni_igralec.je_bil_na_potezi:
+    if igra.runda.stave_so_poravnane():
         bottle.redirect("/celotna_runda/")
 
-    if igra.runda.igralec_na_potezi != igra.runda.igralec_resnicni:
+    elif igra.runda.igralec_na_potezi != igra.runda.igralec_resnicni:
 
         igra.runda.vprasaj_racunalnik_za_potezo()
         igra.runda.stevilo_potez += 1
         igra.igralci[igra.runda.igralec_na_potezi].je_bil_na_potezi = True
         igra.runda.pokaži_razlike_za_klicat()
 
-        return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+        igra.runda.naslednji_na_potezi()
+        if igra.runda.igralec_na_potezi != igra.runda.igralec_resnicni and not igra.runda.stave_so_poravnane():
+            return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
     bottle.redirect("/celotna_runda/")
 
@@ -112,9 +105,8 @@ def celotna_runda():
     if igra.runda.imamo_predcasnega_zmagovalca():
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
-        # stave morajo biti poravnane, kjer se upošteva samo igralce v igri. Če resnicni igralec folda, se torej ne upošteva, zato dodaten pogoj.
-    if igra.resnicni_igralec.je_bil_na_potezi and igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
-        return bottle.template("pojdi_v_nov_krog.html", igra=igra, del_igre=DEL_IGRE)
+    if igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
+        bottle.redirect("/odpri_karte/")
     if igra.runda.kje_smo_v_igri != "konec":
         return bottle.template("odigraj_krog.html", igra=igra)
     else:
@@ -122,7 +114,7 @@ def celotna_runda():
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
 
 
-@bottle.post("/odpri_karte/")
+@bottle.get("/odpri_karte/")
 def odpri():
     odpri_karte()
     bottle.redirect("/krog_stav/")
@@ -133,8 +125,6 @@ def konec():
     igra = ugotovi_igro()
 
     igra.runda.razdeli_pot()
-
-    ponastavi_dele_igre()
 
     bottle.redirect("/celotna_igra/")
 
@@ -148,6 +138,7 @@ def povisaj():
         return bottle.template("premajhna_stava.html", igra=igra)
 
     igra.povisaj(vrednost)
+    igra.runda.naslednji_na_potezi()
 
     return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
@@ -157,6 +148,7 @@ def check():
     igra = ugotovi_igro()
 
     igra.check()
+    igra.runda.naslednji_na_potezi()
 
     return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
@@ -166,6 +158,7 @@ def klici():
     igra = ugotovi_igro()
 
     igra.klici()
+    igra.runda.naslednji_na_potezi()
 
     return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
@@ -175,15 +168,7 @@ def odstopi():
     igra = ugotovi_igro()
 
     igra.odstopi()
-
-    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
-
-
-@bottle.post("/nadaljuj_s_krogom/")
-def nadaljuj():
-    igra = ugotovi_igro()
-
-    igra.nadaljuj()
+    igra.runda.naslednji_na_potezi()
 
     return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
@@ -192,13 +177,6 @@ def nadaljuj():
 def zbrisi_piskotek():
     bottle.response.delete_cookie(IME_PISKOTKA, path="/")
     bottle.redirect("/")
-
-
-@bottle.error(500)
-def error500(error):
-    igra = ugotovi_igro()
-
-    return bottle.template("pojdi_na_slepo.html", igra=igra)
 
 
 # Zaženi ---------------------------------------------------------------------
