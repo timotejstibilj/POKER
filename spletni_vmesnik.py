@@ -105,6 +105,8 @@ def celotna_runda():
     if igra.runda.imamo_predcasnega_zmagovalca():
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
+    if igra.runda.le_en_igralec_z_zetoni(igra) and igra.runda.kje_smo_v_igri != "konec":
+        bottle.redirect("/odpri_karte/")
     if igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
         bottle.redirect("/odpri_karte/")
     if igra.runda.kje_smo_v_igri != "konec":
@@ -112,6 +114,13 @@ def celotna_runda():
     else:
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
+
+
+@bottle.get("/odigraj_krog/")
+def odigraj():
+    igra = ugotovi_igro()
+
+    return bottle.template("odigraj_krog.html", igra=igra)
 
 
 @bottle.get("/odpri_karte/")
