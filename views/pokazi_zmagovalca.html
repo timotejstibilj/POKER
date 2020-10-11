@@ -2,6 +2,19 @@
 
 
 <form action="/konec_runde/" method="POST">
-    <input style="position: fixed; margin-top: 550px; margin-left: 1100px;" class="btn btn-primary btn-lg" type="submit"
+    <input style="position: fixed; margin-top: 560px; margin-left: 1100px;" class="btn btn-primary btn-lg" type="submit"
         value="nova runda">
 </form>
+
+<div style="position:fixed; margin-top: 500px; margin-left:1075px" class="alert alert-primary" role="alert">
+    % if len(igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())) == 1:
+    Zmagal/a je {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())}}.
+    % elif len(igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())) == 2:
+    Zmagovalca sta {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[0]}} in
+    {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[1]}}
+    % else:
+    Zmagovalci so {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[0]}},
+    {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[1]}} in
+    {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[3]}}
+    % end
+</div>
