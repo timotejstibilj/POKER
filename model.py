@@ -400,8 +400,6 @@ class Blefer(Igralec):
         #        else:
         #            self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 7))) * self.žetoni)
         self.bo_callal = True
-        self.bo_raisal = True
-        self.koliko_bo_raisal = 30
 
 
 class NespametniGoljuf(Igralec):
@@ -595,7 +593,7 @@ class Runda:
     def pojdi_v_naslednji_krog(self):
         if self.stave_so_poravnane():
             # če so stave poravnane, se začne nov del igre
-            self.igralec_na_potezi = 0
+            self.igralec_na_potezi = 1
             self.stevilo_potez = 0
             # nastavimo tako, da bo nov del igre začel igralec s small blindom
             for i in self.igralci:
@@ -629,6 +627,7 @@ class Runda:
             igralec.all_in = True
 
     def vprasaj_racunalnik_za_potezo(self):
+        """Odigra potezo računalniškega igralca."""
         igralec = self.igralci[self.igralec_na_potezi]
         self.pokaži_razlike_za_klicat()
         igralec.kako_igra(self.miza.karte, self.stevilo_potez)
@@ -650,7 +649,14 @@ class Runda:
             else:
                 igralec.folda()
         else:
-            igralec.check = True
+            if igralec.bo_raisal:
+                if igralec.koliko_bo_raisal < igralec.žetoni:
+                    self.igralec_na_potezi_stavi(igralec.koliko_bo_raisal)
+                else:
+                    self.igralec_na_potezi_stavi(igralec.žetoni)
+                    igralec.all_in = True
+            else:
+                igralec.check = True
 
     def kdo_je_zmagal_rundo(self, kiri_igralci):
         """Pokaže kateri igralci imajo najboljšo kombinacijo. Izbira med igralci, ki jih podamo (ne nujno med vsemi)."""
@@ -759,27 +765,26 @@ class Igra:
         self.igralci.append(self.igralci.pop(0))  # Rotiraj igralce, da dobimo novega dealer-ja.
         self.runda = Runda(self.igralci)
 
-    def poskrbi_za_nadaljevanje_runde(self):
+    def shrani_potezo(self):
         self.resnicni_igralec.je_bil_na_potezi = True
         self.runda.stevilo_potez += 1
 
     def povisaj(self, koliko):
-        vrednost = self.resnicni_igralec.žetoni_v_igri + koliko
         self.runda.igralec_na_potezi_stavi(koliko)
-        self.poskrbi_za_nadaljevanje_runde()
+        self.shrani_potezo()
 
     def klici(self):
         razlika = self.resnicni_igralec.razlika_za_klicat
         self.runda.igralec_na_potezi_stavi(razlika)
-        self.poskrbi_za_nadaljevanje_runde()
+        self.shrani_potezo()
 
     def odstopi(self):
         self.resnicni_igralec.folda()
-        self.poskrbi_za_nadaljevanje_runde()
+        self.shrani_potezo()
 
     def check(self):
         self.resnicni_igralec.check = True
-        self.poskrbi_za_nadaljevanje_runde()
+        self.shrani_potezo()
 
     # uporabimo v html-ju, ker sicer posamezen igralec ne ostaja na istem mestu v novi rundi, saj se igralci rotirajo.
     def vsi_igralci(self):
