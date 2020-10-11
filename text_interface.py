@@ -9,8 +9,8 @@ igra.nova_runda()
 
 
 def odigraj_krog():
-    print(igra.stanje())
     igra.runda.krog_stav()
+    print(igra.stanje())
     igra.runda.pojdi_v_naslednji_krog()
     while not igra.runda.stave_so_poravnane():
         print("============================================================= \n")
