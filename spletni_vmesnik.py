@@ -86,7 +86,11 @@ def krog_stav():
 
     elif igra.runda.igralec_na_potezi != igra.runda.igralec_resnicni:
         # Ob začetku novega dela igre, vrne gumb za potezo
-        if igra.runda.stevilo_potez == 0:
+        if (
+            igra.runda.stevilo_potez == 0
+            and not igra.igralci[igra.runda.igralec_na_potezi].fold
+            and not igra.igralci[igra.runda.igralec_na_potezi].all_in
+        ):
             igra.runda.stevilo_potez = 1
             return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
@@ -110,8 +114,12 @@ def celotna_runda():
     if igra.runda.imamo_predcasnega_zmagovalca():
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
-    if igra.runda.le_en_igralec_z_zetoni(igra) and len(igra.runda.miza.karte) != 5:
-        bottle.redirect("/odpri_karte/")
+    if igra.runda.predcasno_zakljucena_runda():
+        while len(igra.runda.miza.karte) != 5:
+            igra.runda.deck.deli_karto(igra.runda.miza, 1)
+        igra.runda.kje_smo_v_igri = "konec"
+        igra.runda.pripni_kombinacije(igra.runda.miza)
+        return bottle.template("pokazi_zmagovalca.html", igra=igra)
     if igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
         igra.blefer.je_bil_na_potezi = False
         bottle.redirect("/odpri_karte/")

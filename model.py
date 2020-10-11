@@ -182,9 +182,9 @@ class Igralec:
 
     def lestvica(self, peterka):
         stevilke = self.karte_na_pol_od_peterke(peterka)[1]
-        if stevilke.sort() == list(range(min(stevilke), max(stevilke) + 1)):
+        if sorted(stevilke) == list(range(min(stevilke), max(stevilke) + 1)):
             return True
-        elif stevilke.sort() == [2, 3, 4, 5, 14]:
+        elif sorted(stevilke) == [2, 3, 4, 5, 14]:
             return True
             # ker je AS reprezentiran s 14, ampak je lahko tudi v vlogi 1
         return False
@@ -330,7 +330,7 @@ class Agresivnež(Igralec):
         #            self.koliko_bo_raisal = random.choice(list(range(1, 6))) * self.razlika_za_klicat
         #        else:
         #            self.koliko_bo_raisal = math.floor(1 / random.choice(list(range(1, 5))) * self.žetoni)
-        self.bo_callal = True
+        self.bo_callal = False
 
 
 class Ravnodušnež(Igralec):
@@ -459,7 +459,7 @@ class NespametniGoljuf(Igralec):
         #            self.koliko_bo_raisal = random.choice(list(range(1, 5))) * self.razlika_za_klicat
         #        else:
         #            self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 10))) * self.žetoni)
-        self.bo_callal = True
+        self.bo_callal = False
 
 
 ######################################################################################################################
@@ -586,9 +586,10 @@ class Runda:
     def imamo_predcasnega_zmagovalca(self):
         return len(self.kdo_je_v_igri()) == 1
 
-    def le_en_igralec_z_zetoni(self, igra):
-        igralci = [igralec for igralec in igra.igralci if not igralec.all_in]
-        return len(igralci) == 1
+    def predcasno_zakljucena_runda(self):
+        """Pove ali sta v igri vsaj dva igralca, s še kaj žetoni - taka igralca, ki še lahko stavita."""
+        igralci_all_in = [igralec for igralec in self.kdo_je_v_igri() if igralec.all_in]
+        return len(igralci_all_in) == len(self.kdo_je_v_igri()) or len(igralci_all_in) == (len(self.kdo_je_v_igri()) - 1)
 
     def pojdi_v_naslednji_krog(self):
         if self.stave_so_poravnane():
@@ -632,6 +633,8 @@ class Runda:
         self.pokaži_razlike_za_klicat()
         igralec.kako_igra(self.miza.karte, self.stevilo_potez)
         igralec.je_bil_na_potezi = True
+        if igralec.fold:
+            return
         if igralec.razlika_za_klicat > 0:
             if igralec.bo_raisal:
                 if igralec.koliko_bo_raisal < igralec.žetoni:
