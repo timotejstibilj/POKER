@@ -531,7 +531,8 @@ class Runda:
         igralec = self.igralci[self.igralec_na_potezi]
         self.pokaži_razlike_za_klicat()
         # če niso vsi v igri pa se pomika dalje po seznamu
-
+        if self.imamo_predcasnega_zmagovalca() or self.predcasno_zakljucena_runda():
+            return
         primerni_igralci = [igralec for igralec in self.kdo_je_v_igri() if not igralec.all_in]
         while igralec not in primerni_igralci:
             self.igralec_na_potezi = (self.igralec_na_potezi + 1) % len(self.igralci)
@@ -671,9 +672,22 @@ class Runda:
         for igralec in igralci:
             if igralec.kombinacija == najboljši_hand:
                 igralec.zmaga = True
-        return [igralec for igralec in self.igralci if igralec.zmaga]
+
+        sez = [igralec.ime for igralec in self.igralci if igralec.zmaga]
+        return self.vrni_niz(sez) + ", ".join(sez)
         # lahko ni samo en, če pride do situacije, da ima več igralcev kombinacijo 5 istih kart
         # če ni side_potov --> kiri_igralci = self.kdo_je_v_igri()
+
+    def vrni_niz(self, seznam):
+        rezultat = ""
+        if len(seznam) == 1:
+            rezultat = "Zmagal/a je "
+        elif len(seznam) == 2:
+            rezultat = "Zmagovalca sta "
+        else:
+            rezultat = "Zmagovalci so "
+
+        return rezultat
 
     def make_side_pots(self):
         igralci = self.igralci

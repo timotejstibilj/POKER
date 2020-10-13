@@ -7,14 +7,5 @@
 </form>
 
 <div style="position:fixed; margin-top: 500px; margin-left:1075px" class="alert alert-primary" role="alert">
-    % if len(igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())) == 1:
-    Zmagal/a je {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())}}.
-    % elif len(igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())) == 2:
-    Zmagovalca sta {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[0]}} in
-    {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[1]}}
-    % else:
-    Zmagovalci so {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[0]}},
-    {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[1]}} in
-    {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())[3]}}
-    % end
+    {{igra.runda.kdo_je_zmagal_rundo(igra.runda.kdo_je_v_igri())}}
 </div>
