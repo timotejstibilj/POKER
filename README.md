@@ -4,7 +4,8 @@
 
 ## OSNOVNO O SPLETNI STRANI POKER
 
-Na spletni strani **POKER** lahko igrate priljubljeno igro poker s štirimi računalniškimi igralci. Urejena je s pomočjo spletnega ogrodja [Bootstrap](https://getbootstrap.com/), zato jo je treba pognati z internetno povezavo.
+Na spletni strani **POKER** lahko igrate priljubljeno igro poker s štirimi računalniškimi igralci. Računalnik si pri svoji igri pomaga z verjetnostjo zmage, ki je izračunana preko knjižnice [holdem-calc](https://pypi.org/project/holdem-calc/).
+Stran je urejena s pomočjo spletnega ogrodja [Bootstrap](https://getbootstrap.com/), zato jo je treba pognati z internetno povezavo.
 
 ---
 
