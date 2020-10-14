@@ -351,7 +351,7 @@ class Ravnodušnež(Igralec):
         #        self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
         #    else:
         #        self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
-        self.bo_callal = True
+        self.bo_callal = False
 
 
 class Blefer(Igralec):
@@ -399,7 +399,7 @@ class Blefer(Igralec):
         #            self.koliko_bo_raisal = random.choices([self.razlika_za_klicat * 5, self.razlika_za_klicat * 8], [3, 1], k=1).pop()
         #        else:
         #            self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 7))) * self.žetoni)
-        self.bo_callal = True
+        self.bo_callal = False
 
 
 class NespametniGoljuf(Igralec):
@@ -472,7 +472,7 @@ class Runda:
 
         self.igralci = igralci
 
-        self.možni_deli_igre = iter(["preflop", "flop", "turn", "river", "konec"])
+        self.možni_deli_igre = iter(["preflop", "flop", "turn", "river", "konec", "nova"])
         self.kje_smo_v_igri = next(self.možni_deli_igre)
 
         self.stevilo_potez = 0
@@ -588,16 +588,20 @@ class Runda:
         return len(self.kdo_je_v_igri()) == 1
 
     def predcasno_zakljucena_runda(self):
-        """Pove ali sta v igri vsaj dva igralca, s še kaj žetoni - taka igralca, ki še lahko stavita."""
+        """Pove ali sta v igri vsaj dva igralca, s še kaj žetoni - taka igralca, ki še lahko stavita ali so že vsi all in."""
         igralci_all_in = [igralec for igralec in self.kdo_je_v_igri() if igralec.all_in]
         return len(igralci_all_in) == len(self.kdo_je_v_igri()) or len(igralci_all_in) == (len(self.kdo_je_v_igri()) - 1)
 
     def pojdi_v_naslednji_krog(self):
+        igralec_s_small_blindom = self.igralci[1]
+
         if self.stave_so_poravnane():
             # če so stave poravnane, se začne nov del igre
-            self.igralec_na_potezi = 1
             self.stevilo_potez = 0
-            # nastavimo tako, da bo nov del igre začel igralec s small blindom
+            self.igralec_na_potezi = 1
+            if igralec_s_small_blindom not in self.kdo_je_v_igri() or igralec_s_small_blindom.all_in:
+                self.naslednji_na_potezi()
+            # nastavimo tako, da bo nov del igre začel igralec s small blindom, če je še v igri
             for i in self.igralci:
                 i.je_bil_na_potezi = False
                 i.razlika_za_klicat = 0
