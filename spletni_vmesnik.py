@@ -82,11 +82,10 @@ def krog_stav():
 
     igra.runda.pokaži_razlike_za_klicat()
     if igra.runda.stave_so_poravnane():
-        print("stave so rešene")
         bottle.redirect("/celotna_runda/")
 
     elif igra.runda.igralec_na_potezi != igra.runda.igralec_resnicni:
-        print("nisem jaz na potezi")
+        # igralec_resnicni je indeks resnicnega_igralca
         # Ob začetku novega dela igre, vrne gumb za potezo
         if (
             igra.runda.stevilo_potez == 0
@@ -97,20 +96,16 @@ def krog_stav():
             return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
 
         else:
-            print("sicer")
             igra.runda.vprasaj_racunalnik_za_potezo()
-            print("raču poteza")
             igra.runda.stevilo_potez += 1
             igra.igralci[igra.runda.igralec_na_potezi].je_bil_na_potezi = True
             igra.runda.pokaži_razlike_za_klicat()
-            print("naslednji bo zdej ga dalo")
+
             igra.runda.naslednji_na_potezi()
-            print("ga je dalo")
 
             if igra.runda.igralec_na_potezi != igra.runda.igralec_resnicni and not igra.runda.stave_so_poravnane():
-                print("naslednji")
                 return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
-    print("bo redirectalo")
+
     bottle.redirect("/celotna_runda/")
 
 
@@ -118,27 +113,20 @@ def krog_stav():
 def celotna_runda():
     igra = ugotovi_igro()
 
-    print("zdej smo tu")
-
     if igra.runda.imamo_predcasnega_zmagovalca():
-        print("je v prvi zanki")
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
     if igra.runda.predcasno_zakljucena_runda():
-        print("je v srudi zanki")
         while len(igra.runda.miza.karte) != 5:
             igra.runda.deck.deli_karto(igra.runda.miza, 1)
         igra.runda.kje_smo_v_igri = "konec"
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
     if igra.runda.pojdi_v_naslednji_krog() and igra.runda.kje_smo_v_igri != "konec":
-        print("je v tretji zanki")
         bottle.redirect("/odpri_karte/")
     elif igra.runda.kje_smo_v_igri != "konec":
-        print("je v cet zanki")
         return bottle.template("odigraj_krog.html", igra=igra)
     else:
-        print("je v peti zanki")
         igra.runda.pripni_kombinacije(igra.runda.miza)
         return bottle.template("pokazi_zmagovalca.html", igra=igra)
 
@@ -152,7 +140,6 @@ def odigraj():
 
 @bottle.get("/odpri_karte/")
 def odpri():
-    print("odpri jo")
     odpri_karte()
     bottle.redirect("/krog_stav/")
 
@@ -175,9 +162,12 @@ def povisaj():
         return bottle.template("premajhna_stava.html", igra=igra)
 
     igra.povisaj(vrednost)
+
     igra.runda.naslednji_na_potezi()
 
-    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    if not igra.runda.stave_so_poravnane():
+        return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    bottle.redirect("/celotna_runda/")
 
 
 @bottle.post("/check/")
@@ -185,9 +175,12 @@ def check():
     igra = ugotovi_igro()
 
     igra.check()
+
     igra.runda.naslednji_na_potezi()
 
-    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    if not igra.runda.stave_so_poravnane():
+        return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    bottle.redirect("/celotna_runda/")
 
 
 @bottle.post("/klici/")
@@ -195,9 +188,12 @@ def klici():
     igra = ugotovi_igro()
 
     igra.klici()
+
     igra.runda.naslednji_na_potezi()
 
-    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    if not igra.runda.stave_so_poravnane():
+        return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    bottle.redirect("/celotna_runda/")
 
 
 @bottle.post("/odstopi/")
@@ -205,9 +201,12 @@ def odstopi():
     igra = ugotovi_igro()
 
     igra.odstopi()
+
     igra.runda.naslednji_na_potezi()
 
-    return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    if not igra.runda.stave_so_poravnane():
+        return bottle.template("poteza_naslednjega_igralca.html", igra=igra)
+    bottle.redirect("/celotna_runda/")
 
 
 @bottle.post("/prekini_igro/")
