@@ -118,9 +118,7 @@ class Igralec:
         karti_igralca = self.karte
         karta_1 = spremeni_zapis_kart().get(karti_igralca[0])
         karta_2 = spremeni_zapis_kart().get(karti_igralca[1])
-        spremenjene_karte_miza = [spremeni_zapis_kart().get(karta) for karta in miza_karte]
         holdem = holdem_calc.calculate(None, False, 1, None, [karta_1, karta_2, "?", "?"], False)
-
         return holdem[1]
         # karte na mizi, točno računanje-true\simulacija-false, število simulacij, datoteka, karte, false
         # prvo vrže tie, potem zmago prvega, potem zmago drugega
@@ -676,11 +674,13 @@ class Runda:
         for igralec in igralci:
             if igralec.kombinacija == najboljši_hand:
                 igralec.zmaga = True
-
-        sez = [igralec.ime for igralec in self.igralci if igralec.zmaga]
-        return self.vrni_niz(sez) + ", ".join(sez)
         # lahko ni samo en, če pride do situacije, da ima več igralcev kombinacijo 5 istih kart
         # če ni side_potov --> kiri_igralci = self.kdo_je_v_igri()
+
+    def kdo_je_glavni_zmagovalec(self):
+        self.kdo_je_zmagal_rundo(self.kdo_je_v_igri())
+        sez = [igralec.ime for igralec in self.igralci if igralec.zmaga]
+        return self.vrni_niz(sez) + ", ".join(sez)
 
     def vrni_niz(self, seznam):
         rezultat = ""
@@ -717,51 +717,40 @@ class Runda:
                 if igralec.žetoni_v_igri == stave_igralcev[i]:
                     igralci_s_tako_stavo.append(igralec)
             for igralec in igralci_s_tako_stavo:
-                igralci.remove(igralec)
+                igralci = [player for player in igralci if player != igralec]
             stanje_stav = list(map(lambda x: x - stanje_stav[i], stanje_stav))
             # spremeni stanje stav tako da odšteje del stave, ki se dodeli prejšnjemu side potu
         return side_pots
 
-    # def razdeli_pot(self):
-    #    """Razdeli vse side pot-e."""
-    #    igralci = self.kdo_je_v_igri()
-    #    side_pots = self.make_side_pots()
-    #    vse_stave = list(side_pots.keys()).sort()
-    #    while self.miza.pot != 0:
-    #        for igralec in self.kdo_je_v_igri():
-    #            igralec.zmaga = False
-    #            self.kdo_je_zmagal_rundo(igralci)
-    #            # ne glede kdo je absolutno zmagal rundo, ampak kdo ima najboljšo kombinacijo izmed igralcev v listu igralci
-    #            zmagovalci = []
-    #            # v seznamu zmagovalcu so igralci s popolnoma enako (najmočnejšo) kombinacijo petih kart
-    #            if igralec.zmaga:
-    #                zmagovalci.append(igralec)
-    #
-    #                # vsota vseh side pot-ov ki pripadajo zmagovalcem oz zmagovalcu, če je en sam
-    #                dodaj = 0
-    #                že_štete_stave = []
-    #                for stava in vse_stave:
-    #                    if stava <= side_pots.get(igralec.žetoni_v_igri):
-    #                        dodaj += side_pots.get(stava)
-    #                        že_štete_stave.append(stava)
-    #                for stava in že_štete_stave:
-    #                    vse_stave.remove(stava)
-    #                    # side poti od teh stav so bili že upoštevani
-    #            for zmagovalec in zmagovalci:
-    #                zmagovalec.žetoni += dodaj / len(zmagovalci)
-    #                self.miza.pot -= dodaj
-    #                igralci.remove(zmagovalec)
-    #            zmagovalci.clear()
-    #            dodaj = 0
-
-    # TODO zbrisi to funkcijo, ko urediš zgornjo
     def razdeli_pot(self):
+        """Razdeli vse side pot-e."""
         igralci = self.kdo_je_v_igri()
-        self.kdo_je_zmagal_rundo(self.kdo_je_v_igri())
-        for igralec in igralci:
+        side_pots = self.make_side_pots()
+        vse_stave = list(side_pots.keys())
+        vse_stave.sort()
+        for igralec in self.kdo_je_v_igri():
+            igralec.zmaga = False
+            self.kdo_je_zmagal_rundo(igralci)
+            # ne glede kdo je absolutno zmagal rundo, ampak kdo ima najboljšo kombinacijo izmed igralcev v listu igralci
+            zmagovalci = []
+            # v seznamu zmagovalcu so igralci s popolnoma enako (najmočnejšo) kombinacijo petih kart
             if igralec.zmaga:
-                igralec.žetoni += self.miza.pot
-                break
+                zmagovalci.append(igralec)
+
+                # vsota vseh side pot-ov ki pripadajo zmagovalcem oz zmagovalcu, če je en sam
+                dodaj = 0
+                že_štete_stave = []
+                for stava in vse_stave:
+                    if stava <= side_pots.get(igralec.žetoni_v_igri):
+                        dodaj += side_pots.get(stava)
+                        že_štete_stave.append(stava)
+                for stava in že_štete_stave:
+                    vse_stave.remove(stava)
+                    # side poti od teh stav so bili že upoštevani
+            for zmagovalec in zmagovalci:
+                zmagovalec.žetoni += dodaj // len(zmagovalci)
+                self.miza.pot -= dodaj
+                igralci.remove(zmagovalec)
 
 
 class Igra:
