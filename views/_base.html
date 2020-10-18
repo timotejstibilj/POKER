@@ -9,250 +9,14 @@
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
     integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-
+  <link rel="stylesheet" href="/static/osnovna.css">
   <!-- Styles -->
-
-  <style>
-    body {
-      background-color: rgb(36, 36, 36);
-    }
-
-    .karta {
-      border: .2em solid rgb(53, 47, 47);
-      border-radius: 10%;
-      height: 107px;
-      width: 66px;
-      margin-right: 5.5px;
-      margin-top: -20px;
-      float: left;
-      background-color: rgb(222, 225, 228);
-    }
-
-    .karta-zadaj {
-      border: .2em solid black;
-      border-radius: 13%;
-      height: 107px;
-      width: 66px;
-      float: left;
-      margin-top: -20px;
-      background: rgb(70, 164, 212);
-      background: -moz-radial-gradient(circle, rgba(70, 164, 212, 1) 0%, rgba(26, 63, 140, 0.9419117988992471) 93%);
-      background: -webkit-radial-gradient(circle, rgba(70, 164, 212, 1) 0%, rgba(26, 63, 140, 0.9419117988992471) 93%);
-      background: radial-gradient(circle, rgba(70, 164, 212, 1) 0%, rgba(26, 63, 140, 0.9419117988992471) 93%);
-      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#46a4d4", endColorstr="#1a3f8c", GradientType=1);
-      ;
-    }
-
-    .karta01 {
-      position: absolute;
-      margin-left: 730px;
-      margin-top: -17px;
-    }
-
-    .karta11 {
-      position: absolute;
-      margin-left: 230px;
-      margin-top: -257px;
-    }
-
-    .karta21 {
-      position: absolute;
-      margin-left: 510px;
-      margin-top: -477px;
-    }
-
-    .karta31 {
-      position: absolute;
-      margin-left: 960px;
-      margin-top: -477px;
-    }
-
-    .karta41 {
-      position: absolute;
-      margin-left: 1221px;
-      margin-top: -257px;
-    }
-
-
-    #karta-fold0 {
-      transform: rotate(15deg);
-      background-color: rgb(165, 163, 162);
-    }
-
-    #karta-fold1 {
-      transform: rotate(15deg);
-      background-color: rgb(165, 163, 162);
-    }
-
-    .card-text {
-      margin: 0;
-      text-align: center;
-      font-size: 2.2em;
-      font-weight: bold;
-      padding: 0;
-    }
-
-    .card-img {
-      text-align: center;
-      margin: 0;
-      font-size: 2.9em;
-      margin-top: -30%
-    }
-
-    .red {
-      color: rgb(199, 27, 27);
-    }
-
-    .black {
-      color: rgb(51, 46, 46);
-    }
-
-
-    .poker-table {
-      background-repeat: no-repeat;
-      width: 745px;
-      height: 411px;
-      margin-top: 76px;
-      margin-left: 240px;
-    }
-
-    .seat {
-      width: 150px;
-      height: 150px;
-      position: absolute;
-      z-index: 1;
-    }
-
-    .kvadratek {
-      width: 160px;
-      height: 55px;
-      font-size: 17px;
-      font: oblique;
-      color: white;
-      text-align: center;
-      top: 70px;
-      margin-left: -11px;
-      position: absolute;
-      border-radius: 2px;
-      z-index: 2;
-    }
-
-    #kvadratek-fold {
-      background-color: rgb(177, 0, 0);
-    }
-
-    #kvadratek-igra {
-      background-color: rgb(85, 85, 85);
-    }
-
-    .bet {
-      font-size: 16px;
-      color: white;
-      position: absolute;
-      margin-left: 20px;
-    }
-
-    #seat3 {
-      left: 890px;
-      top: 30px;
-    }
-
-    .seat3-položaj {
-      left: 505px;
-      top: 80px;
-    }
-
-    #seat3 .bet {
-      left: 35px;
-      top: 135px;
-    }
-
-    #seat4 {
-      left: 1150px;
-      top: 250px;
-    }
-
-    .seat4-položaj {
-      left: 655px;
-      top: 215px;
-    }
-
-    #seat4 .bet {
-      left: -72px;
-      top: 85px;
-    }
-
-    #seat0 {
-      left: 660px;
-      top: 490px;
-    }
-
-    .seat0-položaj {
-      left: 485px;
-      top: 325px;
-    }
-
-    #seat0 .bet {
-      left: 32px;
-      top: -51px;
-    }
-
-
-    #seat1 {
-      left: 160px;
-      top: 250px;
-    }
-
-    .seat1-položaj {
-      left: 125px;
-      top: 215px;
-    }
-
-    #seat1 .bet {
-      left: 144px;
-      top: 85px;
-    }
-
-    #seat2 {
-      left: 440px;
-      top: 30px;
-    }
-
-    .seat2-položaj {
-      left: 275px;
-      top: 80px;
-    }
-
-    #seat2 .bet {
-      left: 35px;
-      top: 135px;
-    }
-
-    #board {
-      position: absolute;
-      left: 550px;
-      top: 280px;
-    }
-
-    #pot {
-      position: absolute;
-      left: 680px;
-      top: 370px;
-      font-size: 23px;
-      font-style: oblique;
-      color: white;
-      text-align: center;
-    }
-
-    .slika1 {
-      width: 1000px;
-    }
-  </style>
 
 </head>
 
 <body>
   {{ !base }}
+
 
   <div class="poker-table">
     <img class="slika1" src="/static/miza.png" />
@@ -275,7 +39,7 @@
 
       % for stevilo, karta in enumerate(igra.vsi_igralci()[i].karte):
       % if (igra.vsi_igralci()[i] == igra.resnicni_igralec and not igra.resnicni_igralec.fold) or (igra.vsi_igralci()[i]
-      % in igra.runda.kdo_je_živ() and igra.runda.kje_smo_v_igri == "konec" and not igra.vsi_igralci()[i].fold):
+      % in igra.runda.kdo_je_v_igri() and igra.runda.kje_smo_v_igri == "konec"):
       <div class="karta karta{{i}}{{stevilo}}">
         <p class="card-text {{karta.povej_barvo_karte()}}">{{karta.povej_število_karte()}}</p>
         <p class="card-img {{karta.povej_barvo_karte()}}">&{{karta.povej_znak_karte()}};</p>
@@ -310,9 +74,12 @@
       <div>pot: <span class="badge badge-secondary">{{igra.runda.miza.pot}}</span></div>
     </div>
 
+
   </div>
 
   % end
+
+
 </body>
 
 </html>

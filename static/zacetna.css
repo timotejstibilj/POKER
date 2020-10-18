@@ -1,0 +1,57 @@
+html,
+body {
+    background-color: #333;
+}
+
+body {
+    display: -ms-flexbox;
+    display: flex;
+    color: #fff;
+    text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
+    box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
+    margin-top: 165px;
+}
+
+.cover-container {
+    max-width: 42em;
+}
+
+
+.cover {
+    padding: 0 0.5rem;
+}
+
+.cover .btn-lg {
+    padding: .75rem 1.25rem;
+    font-weight: 700;
+}
+
+.slika1 {
+    width: 330px;
+    margin-top: -220px;
+    position: relative;
+    margin-left: -390px;
+    opacity: 20%;
+    transform: rotate(-20deg);
+}
+
+.slika2 {
+    width: 330px;
+    margin-top: -230px;
+    position: relative;
+    margin-left: 670px;
+    opacity: 20%;
+    transform: rotate(20deg);
+}
+
+input[type=text],
+select {
+    width: 32%;
+    height: 60%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}

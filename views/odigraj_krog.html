@@ -2,10 +2,9 @@
 
 
 % if not igra.resnicni_igralec.fold:
-<form style="position: fixed; margin-top: 549px; margin-left: 1225px;" action="/povisaj/" method="POST">
+<form style="position: fixed; margin-top: 546px; margin-left: 1225px;" action="/povisaj/" method="POST">
     <button class="btn btn-success btn-lg" type="submit">RAISE</button>
-    <input style="width: 100px; height: 45px; margin-left: 10px;" type="number" name="koliko"
-        value={{igra.resnicni_igralec.razlika_za_klicat * 2 or 20}}>
+    <input type="number" name="koliko" value={{igra.resnicni_igralec.razlika_za_klicat * 2 or 20}}>
 </form>
 % end
 
