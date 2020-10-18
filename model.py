@@ -113,12 +113,12 @@ class Igralec:
 
     ##############################################################
 
-    def zračunaj_verjetnost_zmage(self, miza_karte):
+    def zračunaj_verjetnost_zmage(self):
         """Izračuna približno verjetnost zmage igralca s pomočjo simulacije."""
         karti_igralca = self.karte
         karta_1 = spremeni_zapis_kart().get(karti_igralca[0])
         karta_2 = spremeni_zapis_kart().get(karti_igralca[1])
-        holdem = holdem_calc.calculate(None, False, 1, None, [karta_1, karta_2, "?", "?"], False)
+        holdem = holdem_calc.calculate(None, False, 5, None, [karta_1, karta_2, "?", "?"], False)
         return holdem[1]
         # karte na mizi, točno računanje-true\simulacija-false, število simulacij, datoteka, karte, false
         # prvo vrže tie, potem zmago prvega, potem zmago drugega
@@ -278,10 +278,11 @@ class Agresivnež(Igralec):
         self.bo_raisal = False
         self.koliko_bo_raisal = 0
         self.bo_callal = False
+        self.žetoni = 1020
 
-    def kako_igra(self, miza_karte, stevilo_potez):
+    def kako_igra(self, stevilo_potez):
         self.ponastavi_raise_in_call()
-        verjetnost_zmage = self.zračunaj_verjetnost_zmage(miza_karte)
+        verjetnost_zmage = self.zračunaj_verjetnost_zmage()
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
 
         if stevilo_potez > 7:
@@ -290,31 +291,31 @@ class Agresivnež(Igralec):
                 if self.razlika_za_klicat > 0:
                     self.bo_raisal = bool(random.choices([True, False], [1, 65], k=1))
                     self.bo_callal = bool(random.choices([True, False], [7, 1], k=1))
-                    self.koliko_bo_raisal = math.floor(8 / random.choice(list(range(4, 7))) * self.razlika_za_klicat)
+                    self.koliko_bo_raisal = math.floor(14 / random.choice(list(range(7, 12))) * self.razlika_za_klicat)
                 else:
-                    self.bo_raisal = bool(random.choices([True, False], [1, 50], k=1))
+                    self.bo_raisal = bool(random.choices([True, False], [1, 40], k=1))
                     self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(8, 12))) * self.žetoni)
             elif verjetnost_zmage > 0.80:
                 self.bo_raisal = bool(random.choices([True, False], [1, 10], k=1))
                 self.bo_callal = True
                 if self.razlika_za_klicat > 0:
-                    self.koliko_bo_raisal = random.choice(list(range(2, 5))) * self.razlika_za_klicat
+                    self.koliko_bo_raisal = random.choice(list(range(2, 4))) * self.razlika_za_klicat
                 else:
                     self.koliko_bo_raisal = math.floor(1 / random.choice(list(range(1, 10))) * self.žetoni)
                 self.bo_raisal = True
         else:
             if verjetnost_zmage <= 0.60 and verjetnost_zmage > 0.40:
                 if self.razlika_za_klicat < (self.žetoni / 3):
-                    self.bo_callal = bool(random.choices([True, False], [1, 13], k=1))
+                    self.bo_callal = bool(random.choices([True, False], [1, 10], k=1))
             elif verjetnost_zmage > 0.60 and verjetnost_zmage <= 0.70:
                 self.bo_raisal = bool(random.choices([True, False], [3, 11], k=1))
-                self.bo_callal = bool(random.choices([True, False], [5, 3], k=1))
+                self.bo_callal = bool(random.choices([True, False], [5, 1], k=1))
                 if self.razlika_za_klicat > 0:
-                    self.koliko_bo_raisal = math.floor(8 / random.choice(list(range(1, 5))) * self.razlika_za_klicat)
+                    self.koliko_bo_raisal = math.floor(8 / random.choice(list(range(4, 7))) * self.razlika_za_klicat)
                 else:
-                    self.koliko_bo_raisal = math.floor(1 / random.choice(list(range(6, 10))) * self.žetoni)
+                    self.koliko_bo_raisal = math.floor(1 / random.choice(list(range(8, 15))) * self.žetoni)
             elif verjetnost_zmage > 0.70 and verjetnost_zmage < 0.85:
-                self.bo_raisal = bool(random.choices([True, False], [13, 2], k=1))
+                self.bo_raisal = bool(random.choices([True, False], [7, 2], k=1))
                 self.bo_callal = True
                 if self.razlika_za_klicat > 0:
                     self.koliko_bo_raisal = random.choice(list(range(1, 6))) * self.razlika_za_klicat
@@ -335,7 +336,7 @@ class Ravnodušnež(Igralec):
         self.koliko_bo_raisal = 0
         self.bo_callal = False
 
-    def kako_igra(self, miza_karte, stevilo_potez):
+    def kako_igra(self, stevilo_potez):
         # Igra je nastavljena na skorajda naključno, vendar vseeno tako, da ne viša stav prepogosto.
 
         self.ponastavi_raise_in_call()
@@ -343,7 +344,7 @@ class Ravnodušnež(Igralec):
         if stevilo_potez < 7:
             self.bo_raisal = random.choice([True, False])
             if self.razlika_za_klicat > 0:
-                self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(10, 24))) * self.razlika_za_klicat)
+                self.koliko_bo_raisal = math.floor(25 / random.choice(list(range(15, 24))) * self.razlika_za_klicat)
             else:
                 self.koliko_bo_raisal = math.floor(4 / random.choice(list(range(4, 30))) * self.žetoni)
 
@@ -356,10 +357,11 @@ class Blefer(Igralec):
         self.bo_raisal = False
         self.koliko_bo_raisal = 0
         self.bo_callal = False
+        self.žetoni = 1010
 
-    def kako_igra(self, miza_karte, stevilo_potez):
+    def kako_igra(self, stevilo_potez):
         self.ponastavi_raise_in_call()
-        verjetnost_zmage = self.zračunaj_verjetnost_zmage(miza_karte)
+        verjetnost_zmage = self.zračunaj_verjetnost_zmage()
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
 
         if stevilo_potez >= 7:
@@ -375,23 +377,23 @@ class Blefer(Igralec):
             if verjetnost_zmage <= 0.45 and verjetnost_zmage > 0.35:
                 if self.razlika_za_klicat < (self.žetoni / 10):
                     if self.razlika_za_klicat > 0:
-                        self.bo_raisal = bool(random.choices([True, False], [1, 5], k=1))
+                        self.bo_raisal = bool(random.choices([True, False], [1, 25], k=1))
                         self.koliko_bo_raisal = random.choices(
                             [self.razlika_za_klicat * 3, self.razlika_za_klicat * 5, self.žetoni], [30, 17, 1], k=1
                         ).pop()
                     else:
-                        self.bo_raisal = bool(random.choices([True, False], [5, 1], k=1))
+                        self.bo_raisal = bool(random.choices([True, False], [1, 5], k=1))
                         self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(8, 12))) * self.žetoni)
             elif verjetnost_zmage > 0.45 and verjetnost_zmage <= 0.65:
-                self.bo_callal = True
+                self.bo_callal = bool(random.choice([True, False]))
                 if self.razlika_za_klicat == 0:
-                    self.bo_raisal = bool(random.choices([True, False], [5, 1], k=1))
+                    self.bo_raisal = bool(random.choices([True, False], [2, 3], k=1))
                     self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 7))) * self.žetoni)
             elif verjetnost_zmage > 0.65:
-                self.bo_raisal = True
+                self.bo_raisal = bool(random.choice([True, False]))
                 self.bo_callal = True
                 if self.razlika_za_klicat > 0:
-                    self.koliko_bo_raisal = random.choices([self.razlika_za_klicat * 5, self.razlika_za_klicat * 8], [3, 1], k=1).pop()
+                    self.koliko_bo_raisal = random.choices([self.razlika_za_klicat * 2, self.razlika_za_klicat * 5], [3, 1], k=1).pop()
                 else:
                     self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(3, 7))) * self.žetoni)
 
@@ -407,18 +409,18 @@ class NespametniGoljuf(Igralec):
         self.koliko_bo_raisal = 0
         self.igra = kira_igra
 
-    def ima_najboljše_karte(self, miza_karte):
+    def ima_najboljše_karte(self):
         verjetnosti = []
         for igralec in self.igra.igralci:
-            verjetnosti.append(igralec.zračunaj_verjetnost_zmage(miza_karte))
-        return max(verjetnosti) == self.zračunaj_verjetnost_zmage(miza_karte)
+            verjetnosti.append(igralec.zračunaj_verjetnost_zmage())
+        return max(verjetnosti) == self.zračunaj_verjetnost_zmage()
 
-    def kako_igra(self, miza_karte, stevilo_potez):
+    def kako_igra(self, stevilo_potez):
         self.ponastavi_raise_in_call()
-        verjetnost_zmage = self.zračunaj_verjetnost_zmage(miza_karte)
+        verjetnost_zmage = self.zračunaj_verjetnost_zmage()
         # to je približna verjetnost, če bi igral samo z enim nasprotnikom
 
-        if self.ima_najboljše_karte(miza_karte):
+        if self.ima_najboljše_karte():
             self.bo_raisal = bool(random.choices([True, False], [7, 2], k=1))
             self.bo_callal = True
             if self.razlika_za_klicat > 0:
@@ -430,28 +432,30 @@ class NespametniGoljuf(Igralec):
             else:
                 self.koliko_bo_raisal = math.floor(3 / random.choice(list(range(6, 10))) * self.žetoni)
         else:
-            if verjetnost_zmage < 50 and verjetnost_zmage > 25:
+            if verjetnost_zmage < 0.50 and verjetnost_zmage > 0.25:
                 if self.razlika_za_klicat < self.žetoni // 10:
-                    self.bo_callal = bool(random.choices([True, False], [7, 11], k=1))
+                    self.bo_callal = bool(random.choices([True, False], [5, 11], k=1))
                 else:
-                    self.bo_callal = bool(random.choices([True, False], [3, 11], k=1))
-            elif verjetnost_zmage < 65 and verjetnost_zmage >= 50:
-                self.bo_callal = bool(random.choices([True, False], [7, 1], k=1))
+                    self.bo_callal = bool(random.choices([True, False], [1, 18], k=1))
+            elif verjetnost_zmage < 0.65 and verjetnost_zmage >= 0.50:
+                self.bo_callal = bool(random.choices([True, False], [5, 1], k=1))
                 if self.razlika_za_klicat > 0 and stevilo_potez < 10:
-                    self.koliko_bo_raisal = random.choices(
-                        [
-                            self.razlika_za_klicat * 2,
-                            self.razlika_za_klicat * 3,
-                            self.razlika_za_klicat * 1.4,
-                        ],
-                        [3, 1, 2],
-                        k=1,
-                    ).pop()
-                    self.bo_raisal = bool(random.choices([True, False], [4, 11], k=1))
-            elif verjetnost_zmage >= 65:
+                    self.koliko_bo_raisal = math.floor(
+                        random.choices(
+                            [
+                                self.razlika_za_klicat * 2,
+                                self.razlika_za_klicat * 3,
+                                self.razlika_za_klicat * 1.4,
+                            ],
+                            [3, 1, 2],
+                            k=1,
+                        ).pop()
+                    )
+                    self.bo_raisal = bool(random.choices([True, False], [2, 11], k=1))
+            elif verjetnost_zmage >= 0.65:
                 self.bo_callal = True
                 if stevilo_potez < 10:
-                    self.bo_raisal = bool(random.choices([True, False], [5, 2], k=1))
+                    self.bo_raisal = bool(random.choices([True, False], [5, 3], k=1))
                 if self.razlika_za_klicat > 0:
                     self.koliko_bo_raisal = random.choice(list(range(1, 5))) * self.razlika_za_klicat
                 else:
@@ -634,7 +638,7 @@ class Runda:
         """Odigra potezo računalniškega igralca."""
         igralec = self.igralci[self.igralec_na_potezi]
         self.pokaži_razlike_za_klicat()
-        igralec.kako_igra(self.miza.karte, self.stevilo_potez)
+        igralec.kako_igra(self.stevilo_potez)
         igralec.je_bil_na_potezi = True
         if igralec.fold:
             return
@@ -724,32 +728,40 @@ class Runda:
 
     def razdeli_pot(self):
         """Razdeli vse side pot-e."""
-        igralci = self.kdo_je_v_igri()
+        igralci = [igralec for igralec in self.kdo_je_v_igri()]
         side_pots = self.make_side_pots()
         vse_stave = list(side_pots.keys())
         vse_stave.sort()
-        for igralec in self.kdo_je_v_igri():
-            igralec.zmaga = False
+        while len(vse_stave) != 0:
+            for igralec in self.kdo_je_v_igri():
+                igralec.zmaga = False
+
             self.kdo_je_zmagal_rundo(igralci)
             # ne glede kdo je absolutno zmagal rundo, ampak kdo ima najboljšo kombinacijo izmed igralcev v listu igralci
-            zmagovalci = []
+            zmagovalci = [igralec for igralec in igralci if igralec.zmaga]
             # v seznamu zmagovalcu so igralci s popolnoma enako (najmočnejšo) kombinacijo petih kart
-            if igralec.zmaga:
-                zmagovalci.append(igralec)
 
-                # vsota vseh side pot-ov ki pripadajo zmagovalcem oz zmagovalcu, če je en sam
-                dodaj = 0
-                že_štete_stave = []
-                for stava in vse_stave:
-                    if stava <= side_pots.get(igralec.žetoni_v_igri):
-                        dodaj += side_pots.get(stava)
-                        že_štete_stave.append(stava)
-                for stava in že_štete_stave:
-                    vse_stave.remove(stava)
-                    # side poti od teh stav so bili že upoštevani
+            že_štete_stave = set()
+            poti_od_igralcev = []
             for zmagovalec in zmagovalci:
-                zmagovalec.žetoni += dodaj // len(zmagovalci)
-                self.miza.pot -= dodaj
+                zmagovalec_pot = 0
+                for stava in vse_stave:
+                    if stava <= zmagovalec.žetoni_v_igri:
+                        zmagovalec_pot += side_pots.get(stava)
+                        že_štete_stave.add(stava)
+                poti_od_igralcev.append(zmagovalec_pot)
+
+            zmagovalci.sort(key=lambda x: x.žetoni_v_igri)
+            dolzina = len(zmagovalci)
+            for i in range(len(zmagovalci)):
+                zmagovalci[i].žetoni += poti_od_igralcev[i] // dolzina
+                poti_od_igralcev = list(map(lambda x: x - (poti_od_igralcev[i] // dolzina), poti_od_igralcev))
+                dolzina -= 1
+
+            for stava in že_štete_stave:
+                vse_stave.remove(stava)
+                # side poti od teh stav so bili že upoštevani
+            for zmagovalec in zmagovalci:
                 igralci.remove(zmagovalec)
 
 
